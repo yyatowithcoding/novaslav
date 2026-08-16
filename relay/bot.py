@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 # environment at import time.
 load_dotenv()
 
-from db import find_conflicts, insert_words, list_words
+from db import delete_words, find_conflicts, insert_words, list_words
 from importer import parse_import_text
 
 DISCORD_BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN", "")
@@ -81,11 +81,27 @@ async def handle_import(request):
     return web.json_response({"added": added, "skipped": skipped, "errors": errors})
 
 
+async def handle_delete(request):
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        body = await request.json()
+    except json.JSONDecodeError:
+        return web.json_response({"error": "body must be JSON"}, status=400)
+
+    words = body.get("words", [])
+    pairs = [(w.get("word", ""), w.get("en", "")) for w in words if isinstance(w, dict)]
+    deleted = await delete_words(pairs)
+
+    return web.json_response({"deleted": deleted, "requested": len(pairs)})
+
+
 def build_web_app():
     app = web.Application()
     app.router.add_get("/health", handle_health)
     app.router.add_get("/api/words", handle_get_words)
     app.router.add_post("/api/import", handle_import)
+    app.router.add_post("/api/delete", handle_delete)
     return app
 
 

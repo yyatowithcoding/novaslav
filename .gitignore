@@ -17,3 +17,4 @@ tools/generated_words.txt
 # OS/editor cruft
 .DS_Store
 Thumbs.db
+tools/cleanup_dupes.txt

@@ -66,7 +66,7 @@ async def find_conflicts(entries):
                 continue  # exact duplicate line, quietly ignore the repeat
             errors.append(
                 f'"{word}" is used twice in this import with different meanings '
-                f'("{seen[word]}" and "{en}") — pick one spelling per meaning.'
+                f'("{seen[word]}" and "{en}"), pick one spelling per meaning.'
             )
             continue
 
@@ -97,3 +97,17 @@ async def insert_words(entries):
         await collection.insert_one(entry)
         added += 1
     return added, skipped
+
+
+async def delete_words(pairs):
+    """Deletes entries matching an exact (word, en) pair. Returns how many were
+    actually removed. Exact-pair match on purpose, so a typo in what you're
+    asking to delete just deletes nothing rather than the wrong word."""
+    collection = get_collection()
+    deleted = 0
+    for word, en in pairs:
+        if not word or not en:
+            continue
+        result = await collection.delete_one({"word": word, "en": en})
+        deleted += result.deleted_count
+    return deleted
