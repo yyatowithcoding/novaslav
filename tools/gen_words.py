@@ -71,6 +71,7 @@ def fetch_existing_words(api_url):
 
 def build_prompt(topic, count, existing_words):
     spellings = ", ".join(sorted(w["word"] for w in existing_words))
+    meanings = ", ".join(sorted(set(w["en"] for w in existing_words)))
     categories = ", ".join(NOVASLAV_CATEGORIES)
     return f"""Generate a vocabulary list for a constructed language called Novaslav.
 Output plain text only: no explanations, no markdown, no code fences.
@@ -86,12 +87,19 @@ Rules:
 - Every word value must be unique in your output. Never reuse a spelling for two meanings.
 - Never reuse any of these {len(existing_words)} spellings, they already exist in the dictionary:
   {spellings}
+- Do not invent a new word for a concept that's already covered below, even with a brand new
+  spelling. If your topic overlaps with something already covered, skip that concept entirely
+  and generate something else instead so you still deliver the full count. Already-covered
+  meanings:
+  {meanings}
+- Also avoid generating more than one entry for the same concept within your own output
+  (e.g. don't give two different words that both just mean "angry").
 
 Generate {count} words about: {topic}
 
 Double check your own output before finalizing: no duplicate word values, no characters
 outside a-z plus {ALLOWED_ACCENTS}, no category outside the list above, no spelling reused
-from the existing list."""
+from the existing list, and no concept reused from the already-covered meanings list either."""
 
 
 def call_groq(prompt, api_key, model):

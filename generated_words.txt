@@ -1,0 +1,20 @@
+radostny, happy, Adjectives
+vzvolna, excited, Adjectives
+zabava, fun, Nouns, common
+strahota, fear, Nouns, common
+ljubim, love, Verbs
+žalosť, sadness, Nouns, common
+gnevny, angry, Adjectives
+vzrušen, excited, Adjectives
+strahly, afraid, Adjectives
+veselosť, happiness, Nouns, common
+smutok, sadness, Nouns, common
+gnevnosť, anger, Nouns, common
+vzvolnosť, excitement, Nouns, common
+ljubovosť, love, Nouns, common
+žalostly, sad, Adjectives
+strahosť, fear, Nouns, common
+gnevnyj, angry, Adjectives
+vzrušenie, excitement, Nouns, neuter
+veselina, happiness, Nouns, common
+smutnosť, sadness, Nouns, common
