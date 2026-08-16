@@ -36,6 +36,11 @@
     return t.toLowerCase().replace(/[.,!?;:"'()]/g, "").trim();
   }
 
+  // Same as cleanToken but keeps original casing, for exact-case Novaslav matching.
+  function cleanTokenCased(t) {
+    return t.replace(/[.,!?;:"'()]/g, "").trim();
+  }
+
   function findWord(cat, en) {
     return NOVASLAV_DATA.find(function (w) { return w.cat === cat && w.en === en; });
   }
@@ -61,14 +66,14 @@
 
   // Checks the *whole* dictionary by the Novaslav side too (base word, definite
   // form, present, or past), so typing an already-Novaslav word or phrase works.
-  function findByNovaslavWord(phrase) {
-    if (!phrase) return null;
-    var p = phrase.toLowerCase();
+  // Exact case on purpose: several short Novaslav pronouns are spelled like common
+  // English words when lowercased ("My" = we, "On" = he), so a case-insensitive
+  // check here would wrongly hijack plain English "my"/"on" mid-sentence.
+  function findByNovaslavWord(phraseCased) {
+    if (!phraseCased) return null;
     return NOVASLAV_DATA.find(function (w) {
-      return (w.word && w.word.toLowerCase() === p) ||
-        (w.def && w.def.toLowerCase() === p) ||
-        (w.pres && w.pres.toLowerCase() === p) ||
-        (w.past && w.past.toLowerCase() === p);
+      return w.word === phraseCased || w.def === phraseCased ||
+        w.pres === phraseCased || w.past === phraseCased;
     }) || null;
   }
 
@@ -119,9 +124,11 @@
       // or "dobri deň" before their individual words get parsed separately).
       var matched = null, matchedLen = 0;
       for (var len = Math.min(MAX_PHRASE_WORDS, rawTokens.length - i); len >= 1; len--) {
-        var phrase = rawTokens.slice(i, i + len).map(cleanToken).join(" ");
+        var slice = rawTokens.slice(i, i + len);
+        var phrase = slice.map(cleanToken).join(" ");
+        var phraseCased = slice.map(cleanTokenCased).join(" ");
         if (!phrase) continue;
-        var entry = findByEnglish(phrase) || findByNovaslavWord(phrase);
+        var entry = findByEnglish(phrase) || findByNovaslavWord(phraseCased);
         if (entry) { matched = entry; matchedLen = len; break; }
       }
 
