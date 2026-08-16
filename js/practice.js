@@ -110,10 +110,13 @@
     document.getElementById("quizProgressText").textContent =
       "Question " + (quiz.current + 1) + " of " + total + " · Score: " + quiz.score;
 
+    var promptEl = document.getElementById("quizPrompt");
     if (quiz.direction === "en-nov") {
-      document.getElementById("quizPrompt").textContent = q.correct.en;
+      promptEl.textContent = q.correct.en;
+      promptEl.removeAttribute("translate");
     } else {
-      document.getElementById("quizPrompt").textContent = q.correct.word;
+      promptEl.textContent = q.correct.word;
+      promptEl.setAttribute("translate", "no");
     }
 
     var optionsWrap = document.getElementById("quizOptions");
@@ -122,6 +125,7 @@
       var btn = document.createElement("button");
       btn.className = "quiz-option";
       btn.textContent = quiz.direction === "en-nov" ? opt.word : opt.en;
+      if (quiz.direction === "en-nov") btn.setAttribute("translate", "no");
       btn.addEventListener("click", function () { quizAnswer(opt, q.correct, btn); });
       optionsWrap.appendChild(btn);
     });

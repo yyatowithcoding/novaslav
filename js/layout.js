@@ -25,11 +25,32 @@
       '<header class="site-header">' +
       '<div class="nav-wrap">' +
       '<a class="logo" href="/">Nov<span>ô</span>slav</a>' +
-      '<button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>' +
       '<nav class="main-nav" id="mainNav"><ul>' + links + "</ul></nav>" +
+      '<div id="google_translate_element" class="notranslate"></div>' +
+      '<button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>' +
       "</div>" +
       "</header>"
     );
+  }
+
+  // Lets visitors read the site's English UI text in one of the real languages
+  // Novaslav's design draws from. Doesn't (and can't) translate the Novaslav
+  // words themselves, those are marked translate="no"/class="notranslate"
+  // wherever they appear so Google's widget leaves them alone.
+  function loadSiteTranslate() {
+    if (window.__novaslavGTLoaded) return;
+    window.__novaslavGTLoaded = true;
+    window.googleTranslateElementInit = function () {
+      new google.translate.TranslateElement({
+        pageLanguage: "en",
+        includedLanguages: "sk,cs,pl,hr,ru",
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, "google_translate_element");
+    };
+    var script = document.createElement("script");
+    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.head.appendChild(script);
   }
 
   function renderFooter() {
@@ -57,5 +78,7 @@
         nav.classList.toggle("open");
       });
     }
+
+    loadSiteTranslate();
   });
 })();

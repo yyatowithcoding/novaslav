@@ -503,6 +503,96 @@ input:focus, select:focus, textarea:focus{
 }
 .speak-btn:hover{ border-color: var(--accent); color: var(--accent); }
 
+/* ---------- Translate panel (Word Builder) ---------- */
+.translate-panel{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.8rem;
+  align-items: stretch;
+}
+@media (max-width: 720px){
+  .translate-panel{ grid-template-columns: 1fr; }
+  .swap-btn{ justify-self: center; transform: rotate(90deg); }
+}
+.translate-box{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.translate-box-header{
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.translate-box textarea{
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  min-height: 140px;
+  padding: 1rem;
+  font-size: 1.05rem;
+  color: var(--text);
+  font-family: var(--sans);
+}
+.translate-box textarea:focus{ outline: none; }
+.translate-output{
+  flex: 1;
+  min-height: 140px;
+  padding: 1rem;
+  font-size: 1.15rem;
+  font-family: var(--serif);
+  color: #fff;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.translate-output .missing-word{ color: var(--accent-3); font-style: italic; }
+.swap-btn{
+  align-self: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--accent);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.swap-btn:hover{ border-color: var(--accent); background: var(--panel-2); }
+
+/* ---------- Site translate widget ---------- */
+#google_translate_element{
+  font-size: 0.85rem;
+}
+#google_translate_element .goog-te-gadget{
+  color: var(--text-dim) !important;
+  font-family: var(--sans) !important;
+  font-size: 0 !important;
+}
+#google_translate_element .goog-te-gadget-simple{
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+#google_translate_element .goog-te-gadget-simple span{
+  color: var(--text) !important;
+  font-size: 0.8rem !important;
+}
+.notranslate{ }
+body > .skiptranslate{ display: none !important; }
+
 /* ---------- Misc ---------- */
 .divider{ border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
 .note{

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Novôslav Word Builder</title>
-<meta name="description" content="Build simple Novôslav sentences from English and see the grammar breakdown.">
+<meta name="description" content="Translate between English and Novôslav, in either direction.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
@@ -17,60 +17,59 @@
   <div class="container narrow">
 
     <div class="section-head">
-      <span class="eyebrow">Rule Engine</span>
+      <span class="eyebrow">Translate</span>
       <h1>Word Builder</h1>
-      <p class="lede">Type any English sentence. It'll translate as much as it can, checking both English meanings and Novôslav spellings across the whole dictionary, and flag anything it doesn't recognize instead of just giving up.</p>
+      <p class="lede">Type in either box, it translates as you go. Checks the whole dictionary both ways, English meaning or Novôslav spelling, and flags anything it doesn't recognize instead of giving up.</p>
     </div>
 
-    <div class="card">
-      <div class="field">
-        <label for="inputText">English</label>
-        <input type="text" id="inputText" placeholder="e.g. I love the horse" value="I love the horse">
-      </div>
-
-      <div class="field">
-        <label>Tense</label>
-        <div class="radio-group">
-          <label><input type="radio" name="tense" value="pres" checked> Present</label>
-          <label><input type="radio" name="tense" value="past"> Past</label>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" id="translateBtn">Build in Novôslav</button>
-
-      <div class="chip-row" style="margin-top:1.2rem; margin-bottom:0;">
-        <button class="chip" data-example="I love the horse">I love the horse</button>
-        <button class="chip" data-example="You see the friend">You see the friend</button>
-        <button class="chip" data-example="He is good">He is good</button>
-        <button class="chip" data-example="We have a book">We have a book</button>
-        <button class="chip" data-example="Thank you, friend">Thank you, friend</button>
-        <button class="chip" data-example="I love the spaceship">I love the spaceship (missing word)</button>
-        <button class="chip" data-example="horse">horse (single word)</button>
+    <div class="field" style="max-width:220px;">
+      <label>Tense (English &rarr; Novôslav only)</label>
+      <div class="radio-group">
+        <label><input type="radio" name="tense" value="pres" checked> Present</label>
+        <label><input type="radio" name="tense" value="past"> Past</label>
       </div>
     </div>
 
-    <div id="outputWrap" style="margin-top:2rem; display:none;">
-      <div class="example-card">
-        <p class="example-novaslav" id="outNovaslav"></p>
-        <p class="example-english" id="outEnglish"></p>
-        <div class="breakdown" id="outBreakdown"></div>
-        <div class="json-toggle-wrap">
-          <button class="btn btn-outline btn-sm" id="jsonToggle">Show JSON</button>
-          <pre class="json-view" id="jsonView"></pre>
+    <div class="translate-panel">
+      <div class="translate-box">
+        <div class="translate-box-header"><span id="sourceLabel">English</span></div>
+        <textarea id="sourceInput" rows="6" placeholder="Type here...">I love the horse</textarea>
+      </div>
+
+      <button class="swap-btn notranslate" id="swapBtn" title="Swap languages" aria-label="Swap languages">&#8646;</button>
+
+      <div class="translate-box">
+        <div class="translate-box-header">
+          <span id="targetLabel">Novôslav</span>
         </div>
+        <div class="translate-output notranslate" id="targetOutput"></div>
       </div>
     </div>
 
     <div id="missingWrap" class="note" style="margin-top:1.2rem; display:none;"></div>
 
-    <div id="errorWrap" style="margin-top:2rem; display:none;">
-      <div class="note" id="errorText"></div>
+    <div id="errorWrap" class="note" style="margin-top:1.2rem; display:none;"></div>
+
+    <div class="chip-row" style="margin-top:1.4rem;">
+      <button class="chip" data-example="I love the horse">I love the horse</button>
+      <button class="chip" data-example="You see the friend">You see the friend</button>
+      <button class="chip" data-example="He is good">He is good</button>
+      <button class="chip" data-example="Thank you, friend">Thank you, friend</button>
+      <button class="chip" data-example="I love the spaceship">I love the spaceship (missing word)</button>
+      <button class="chip" data-example="horse">horse (single word)</button>
     </div>
 
-    <div class="note" style="margin-top:2rem;">
-      Checks the whole dictionary both ways: type an English word or a Novôslav one, either works. Anything it can't find
-      gets left in <code>[brackets]</code> and listed below the translation instead of stopping the whole thing. Pronouns
-      recognized: I, you, he, she, it, we, they. Full list is in the <a href="/dictionary/">Dictionary</a>.
+    <div class="card" style="margin-top:1.4rem;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h3 style="margin:0;">Grammar breakdown</h3>
+        <button class="btn btn-outline btn-sm" id="jsonToggle">Show JSON</button>
+      </div>
+      <div class="breakdown" id="outBreakdown" style="margin-top:1rem;"></div>
+      <pre class="json-view" id="jsonView"></pre>
+    </div>
+
+    <div class="note" style="margin-top:1.4rem;">
+      Pronouns recognized: I, you, he, she, it, we, they. Full vocabulary is in the <a href="/dictionary/">Dictionary</a>.
     </div>
 
   </div>

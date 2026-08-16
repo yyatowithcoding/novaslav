@@ -99,7 +99,7 @@
           </div>
         </div>
         <div class="example-card" style="margin-top:1.4rem;">
-          <p class="example-novaslav">Ty vidar druhen.</p>
+          <p class="example-novaslav" translate="no">Ty vidar druhen.</p>
           <p class="example-english">"You see the friend." Subject <b>ty</b>, verb <b>vidar</b>, object <b>druhen</b>, always in that order.</p>
         </div>
       </div>
@@ -114,14 +114,14 @@
           <div class="card">
             <h3 style="color:var(--accent);">Common gender: <span class="gold">-en</span></h3>
             <p style="color:var(--text-dim);">Most animate and everyday nouns.</p>
-            <p><b>kôn</b> (horse) &rarr; <b class="ice">kônen</b> (the horse)</p>
-            <p><b>druh</b> (friend) &rarr; <b class="ice">druhen</b> (the friend)</p>
+            <p><b translate="no">kôn</b> (horse) &rarr; <b class="ice" translate="no">kônen</b> (the horse)</p>
+            <p><b translate="no">druh</b> (friend) &rarr; <b class="ice" translate="no">druhen</b> (the friend)</p>
           </div>
           <div class="card">
             <h3 style="color:var(--accent-3);">Neuter: <span class="gold">-et</span></h3>
             <p style="color:var(--text-dim);">A smaller class of nouns, often abstract.</p>
-            <p><b>serd</b> (heart) &rarr; <b class="ice">serdet</b> (the heart)</p>
-            <p><b>dom</b> (house) &rarr; <b class="ice">domet</b> (the house)</p>
+            <p><b translate="no">serd</b> (heart) &rarr; <b class="ice" translate="no">serdet</b> (the heart)</p>
+            <p><b translate="no">dom</b> (house) &rarr; <b class="ice" translate="no">domet</b> (the house)</p>
           </div>
         </div>
         <div class="note" style="margin-top:1.2rem;">Indefinite nouns just use the bare stem. Novôslav doesn't have a separate word for "a/an".</div>
@@ -143,7 +143,7 @@
           </table>
         </div>
         <div class="example-card" style="margin-top:1.4rem;">
-          <p class="example-novaslav">My, ty, on byar dobri.</p>
+          <p class="example-novaslav" translate="no">My, ty, on byar dobri.</p>
           <p class="example-english">"We, you, he, are good." One verb form, no matter the subject.</p>
         </div>
       </div>
@@ -159,12 +159,12 @@
           <div class="card">
             <span class="badge">Example</span>
             <h3 style="margin-top:0.6rem;">Kôn (Horse)</h3>
-            <p style="color:var(--text-dim);">The root <b>kôn</b> is the word itself, then definite <b class="ice">kônen</b>.</p>
+            <p style="color:var(--text-dim);">The root <b translate="no">kôn</b> is the word itself, then definite <b class="ice" translate="no">kônen</b>.</p>
           </div>
           <div class="card">
             <span class="badge">Example</span>
             <h3 style="margin-top:0.6rem;">Serdet (Heart)</h3>
-            <p style="color:var(--text-dim);">A root like <b>serd</b> takes the neuter definite suffix straight on: <b class="ice">serdet</b>.</p>
+            <p style="color:var(--text-dim);">A root like <b translate="no">serd</b> takes the neuter definite suffix straight on: <b class="ice" translate="no">serdet</b>.</p>
           </div>
         </div>
 
@@ -196,16 +196,16 @@
   }
 
   var standardHtml = STANDARD.map(function(ch){
-    return '<div class="alpha-tile"><span class="cyr">'+ch+'</span></div>';
+    return '<div class="alpha-tile"><span class="cyr" translate="no">'+ch+'</span></div>';
   });
   var specialHtml = SPECIAL.map(function(pair){
-    return '<div class="alpha-tile special"><span class="cyr">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
+    return '<div class="alpha-tile special"><span class="cyr" translate="no">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
   });
   var softHtml = SOFT.map(function(pair){
-    return '<div class="alpha-tile special"><span class="cyr">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
+    return '<div class="alpha-tile special"><span class="cyr" translate="no">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
   });
   var sibilantHtml = SIBILANT.map(function(pair){
-    return '<div class="alpha-tile special"><span class="cyr">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
+    return '<div class="alpha-tile special"><span class="cyr" translate="no">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
   });
 
   document.addEventListener("DOMContentLoaded", function(){

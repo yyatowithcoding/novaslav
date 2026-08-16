@@ -41,6 +41,10 @@
     return t.replace(/[.,!?;:"'()]/g, "").trim();
   }
 
+  function firstAlt(enField) {
+    return enField.split("/")[0].trim().replace(/\s*\([^)]*\)\s*/g, "").trim();
+  }
+
   function findWord(cat, en) {
     return NOVASLAV_DATA.find(function (w) { return w.cat === cat && w.en === en; });
   }
@@ -77,6 +81,20 @@
     }) || null;
   }
 
+  // Used from the dedicated Novaslav input box, so there's no English to collide
+  // with, safe to be case-insensitive here (and returns which field matched).
+  function findByNovaslavWordCI(phrase) {
+    if (!phrase) return null;
+    var p = phrase.toLowerCase();
+    var fields = ["word", "def", "pres", "past"];
+    for (var i = 0; i < fields.length; i++) {
+      var f = fields[i];
+      var entry = NOVASLAV_DATA.find(function (w) { return w[f] && w[f].toLowerCase() === p; });
+      if (entry) return { entry: entry, field: f };
+    }
+    return null;
+  }
+
   function describeMatch(entry, tense, wasDefinite) {
     if (entry.cat === "Verbs") {
       return 'Verb ("' + entry.en + '"), ' + (tense === "past" ? "past" : "present") + " tense, same form no matter the subject.";
@@ -97,15 +115,15 @@
     return { error: msg };
   }
 
-  // Best-effort, word-by-word (and phrase-by-phrase) translation. Anything it
-  // can't find anywhere in the dictionary, in English *or* in Novaslav, gets
-  // left as-is in brackets and reported in `missing` instead of failing outright.
-  function translate(inputText, tense) {
+  // Best-effort, word-by-word (and phrase-by-phrase) translation from English
+  // into Novaslav. Anything it can't find anywhere in the dictionary, in English
+  // *or* in Novaslav, gets left as-is in brackets and reported in `missing`
+  // instead of failing the whole sentence outright.
+  function translateEnToNov(inputText, tense) {
     var clean = inputText.trim().replace(/[.!?]+$/, "");
-    if (!clean) return buildError("Type something to build.");
+    if (!clean) return buildError("Type something to translate.");
 
     var rawTokens = clean.split(/\s+/);
-    var isSingleWordInput = rawTokens.length === 1;
     var outWords = [];
     var breakdown = {};
     var missing = [];
@@ -143,20 +161,6 @@
         }
         outWords.push(outForm);
         breakdown[outForm] = describeMatch(matched, tense, matched.cat === "Nouns" && pendingDefinite);
-
-        // Pure single-word lookups get a bonus: show the other form too
-        // (the definite noun form, or the other verb tense) since there's
-        // no sentence context to pick just one.
-        if (isSingleWordInput) {
-          if (matched.cat === "Nouns" && matched.def && outForm !== matched.def) {
-            breakdown[matched.def] = 'Definite form ("the ' + matched.en + '"), ' + (matched.gender || "common") + " gender suffix.";
-          } else if (matched.cat === "Verbs") {
-            var otherForm = tense === "past" ? matched.pres : matched.past;
-            var otherTense = tense === "past" ? "present" : "past";
-            breakdown[otherForm] = capitalize(otherTense) + " tense.";
-          }
-        }
-
         pendingDefinite = false;
         i += matchedLen;
         continue;
@@ -199,40 +203,96 @@
       i++;
     }
 
-    var novWord = capitalize(outWords.join(" ")) + ".";
-
     return {
-      mode: "sentence",
-      novaslav: novWord,
-      english_translation: capitalize(clean) + ".",
+      target: capitalize(outWords.join(" ")) + ".",
       grammar_breakdown: breakdown,
       missing: missing
     };
   }
 
-  function render(result) {
-    var outputWrap = document.getElementById("outputWrap");
+  // Reverse direction: Novaslav -> English. No English collision risk here since
+  // the whole box is committed to being Novaslav, so this stays case-insensitive.
+  function translateNovToEn(inputText) {
+    var clean = inputText.trim().replace(/[.!?]+$/, "");
+    if (!clean) return buildError("Type something to translate.");
+
+    var rawTokens = clean.split(/\s+/);
+    var outWords = [];
+    var breakdown = {};
+    var missing = [];
+
+    var i = 0;
+    while (i < rawTokens.length) {
+      var raw = rawTokens[i];
+      var lower = cleanToken(raw);
+      if (!lower) { i++; continue; }
+
+      var matched = null, matchedLen = 0, matchedField = "word";
+      for (var len = Math.min(MAX_PHRASE_WORDS, rawTokens.length - i); len >= 1; len--) {
+        var phrase = rawTokens.slice(i, i + len).map(cleanToken).join(" ");
+        if (!phrase) continue;
+        var hit = findByNovaslavWordCI(phrase);
+        if (hit) { matched = hit.entry; matchedField = hit.field; matchedLen = len; break; }
+      }
+
+      if (matched) {
+        var enOut = firstAlt(matched.en);
+        var label = rawTokens.slice(i, i + matchedLen).join(" ");
+        if (matched.cat === "Verbs" && matchedField === "past") {
+          enOut = enOut + " (past)";
+          breakdown[label] = 'Verb ("' + matched.en + '"), past tense.';
+        } else if (matched.cat === "Nouns" && matchedField === "def") {
+          enOut = "the " + enOut;
+          breakdown[label] = 'Noun ("' + matched.en + '"), definite form.';
+        } else {
+          breakdown[label] = describeMatch(matched, "pres", false);
+        }
+        outWords.push(enOut);
+        i += matchedLen;
+        continue;
+      }
+
+      outWords.push("[" + raw + "]");
+      missing.push(raw);
+      i++;
+    }
+
+    return {
+      target: capitalize(outWords.join(" ")) + ".",
+      grammar_breakdown: breakdown,
+      missing: missing
+    };
+  }
+
+  function render(result, direction) {
     var errorWrap = document.getElementById("errorWrap");
     var missingWrap = document.getElementById("missingWrap");
+    var targetOutput = document.getElementById("targetOutput");
 
     if (result.error) {
-      outputWrap.style.display = "none";
-      missingWrap.style.display = "none";
       errorWrap.style.display = "block";
-      document.getElementById("errorText").innerHTML = "<b>Couldn’t build that:</b> " + result.error;
+      errorWrap.innerHTML = result.error;
+      missingWrap.style.display = "none";
+      targetOutput.innerHTML = "";
+      document.getElementById("outBreakdown").innerHTML = "";
+      state.lastTarget = "";
       return;
     }
     errorWrap.style.display = "none";
-    outputWrap.style.display = "block";
+    state.lastTarget = result.target;
 
-    var speakBtn = window.NovaslavTTS ? window.NovaslavTTS.button(result.novaslav.replace(/\.$/, "").replace(/[\[\]]/g, "")) : "";
-    document.getElementById("outNovaslav").innerHTML = result.novaslav + speakBtn;
-    document.getElementById("outEnglish").textContent = '"' + result.english_translation + '"';
+    var isNovTarget = direction === "en-nov";
+    var speakText = result.target.replace(/\.$/, "").replace(/[\[\]]/g, "");
+    var speakBtn = isNovTarget && window.NovaslavTTS ? window.NovaslavTTS.button(speakText) : "";
+    targetOutput.innerHTML = result.target + speakBtn;
 
     var bd = document.getElementById("outBreakdown");
-    bd.innerHTML = Object.keys(result.grammar_breakdown).map(function (k) {
-      return '<div class="breakdown-row"><b>' + k + "</b><span>" + result.grammar_breakdown[k] + "</span></div>";
-    }).join("");
+    var keys = Object.keys(result.grammar_breakdown);
+    bd.innerHTML = keys.length
+      ? keys.map(function (k) {
+          return '<div class="breakdown-row"><b>' + k + "</b><span>" + result.grammar_breakdown[k] + "</span></div>";
+        }).join("")
+      : '<p style="color:var(--text-dim); margin:0;">Nothing recognized yet.</p>';
 
     if (result.missing && result.missing.length) {
       missingWrap.style.display = "block";
@@ -244,43 +304,69 @@
       missingWrap.innerHTML = "";
     }
 
-    var jsonObj = {
-      novaslav: result.novaslav,
-      english_translation: result.english_translation,
+    document.getElementById("jsonView").textContent = JSON.stringify({
+      target: result.target,
       grammar_breakdown: result.grammar_breakdown,
       missing: result.missing || []
-    };
-    document.getElementById("jsonView").textContent = JSON.stringify(jsonObj, null, 2);
-    document.getElementById("jsonView").classList.remove("show");
-    document.getElementById("jsonToggle").textContent = "Show JSON";
+    }, null, 2);
   }
 
+  var state = { direction: "en-nov", lastTarget: "" };
+
   function run() {
-    var text = document.getElementById("inputText").value;
+    var text = document.getElementById("sourceInput").value;
     var tense = document.querySelector('input[name="tense"]:checked').value;
-    render(translate(text, tense));
+    var result = state.direction === "en-nov" ? translateEnToNov(text, tense) : translateNovToEn(text);
+    render(result, state.direction);
+  }
+
+  var debounceHandle = null;
+  function runDebounced() {
+    clearTimeout(debounceHandle);
+    debounceHandle = setTimeout(run, 300);
+  }
+
+  function updateLabels() {
+    var fromLabel = document.getElementById("sourceLabel");
+    var toLabel = document.getElementById("targetLabel");
+    if (state.direction === "en-nov") {
+      fromLabel.textContent = "English";
+      toLabel.textContent = "Novôslav";
+    } else {
+      fromLabel.textContent = "Novôslav";
+      toLabel.textContent = "English";
+    }
+  }
+
+  function swap() {
+    var sourceInput = document.getElementById("sourceInput");
+    var targetText = (state.lastTarget || "").replace(/\.$/, "").replace(/[\[\]]/g, "").trim();
+
+    state.direction = state.direction === "en-nov" ? "nov-en" : "en-nov";
+    updateLabels();
+    if (targetText) sourceInput.value = targetText;
+    run();
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    var translateBtn = document.getElementById("translateBtn");
-    translateBtn.disabled = true;
-    translateBtn.textContent = "Loading words...";
+    var sourceInput = document.getElementById("sourceInput");
+    sourceInput.addEventListener("input", runDebounced);
 
-    translateBtn.addEventListener("click", run);
-    document.getElementById("inputText").addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && !translateBtn.disabled) run();
+    document.querySelectorAll('input[name="tense"]').forEach(function (r) {
+      r.addEventListener("change", run);
     });
+
+    document.getElementById("swapBtn").addEventListener("click", swap);
+
     document.querySelectorAll(".chip[data-example]").forEach(function (chip) {
       chip.addEventListener("click", function () {
-        document.getElementById("inputText").value = chip.dataset.example;
-        if (!translateBtn.disabled) run();
+        if (state.direction !== "en-nov") {
+          state.direction = "en-nov";
+          updateLabels();
+        }
+        sourceInput.value = chip.dataset.example;
+        run();
       });
-    });
-
-    NOVASLAV_DATA_READY.then(function () {
-      translateBtn.disabled = false;
-      translateBtn.textContent = "Build in Novôslav";
-      run();
     });
 
     document.getElementById("jsonToggle").addEventListener("click", function () {
@@ -288,9 +374,17 @@
       view.classList.toggle("show");
       this.textContent = view.classList.contains("show") ? "Hide JSON" : "Show JSON";
     });
+
+    sourceInput.disabled = true;
+    document.getElementById("targetOutput").textContent = "Loading words...";
+
+    NOVASLAV_DATA_READY.then(function () {
+      sourceInput.disabled = false;
+      run();
+    });
   });
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { translate: translate };
+    module.exports = { translateEnToNov: translateEnToNov, translateNovToEn: translateNovToEn };
   }
 })();
