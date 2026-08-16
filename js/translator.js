@@ -62,10 +62,104 @@
     return false;
   }
 
-  // Checks the *whole* dictionary by English meaning.
-  function findByEnglish(phrase) {
-    if (!phrase) return null;
-    return NOVASLAV_DATA.find(function (w) { return altMatches(w.en, phrase); }) || null;
+  var GENDER_TAGS = ["masculine", "feminine", "neuter"];
+  var NUMBER_TAGS = ["singular", "plural"];
+
+  // A gender/number qualifier at the end of an "en" field, like "my / mine
+  // (feminine)" or "friend (plural)", describes the *whole* entry, every "/"
+  // alternate before it, not just whichever word happens to sit next to the
+  // parentheses. Pulls that trailing qualifier off once, then splits the rest.
+  function parseEntryEn(enField) {
+    var gender = null, number = null;
+    var withoutTrailingQualifier = enField.replace(/\(([^)]*)\)\s*$/, function (m, inner) {
+      inner.split(",").forEach(function (p) {
+        p = p.trim().toLowerCase();
+        if (GENDER_TAGS.indexOf(p) !== -1) gender = p;
+        if (NUMBER_TAGS.indexOf(p) !== -1) number = p;
+      });
+      return "";
+    }).trim();
+    var alts = withoutTrailingQualifier.split("/").map(function (s) {
+      return s.trim().toLowerCase().replace(/\s*\([^)]*\)\s*/g, "").trim();
+    });
+    return { alts: alts, gender: gender, number: number };
+  }
+
+  // Finds every dictionary entry whose English meaning (any "/" alternate)
+  // matches phrase, tagged with whatever gender/number qualifier that entry
+  // carried. Multiple hits means a real ambiguity (e.g. "my" existing as
+  // separate masculine/feminine/neuter entries).
+  function findVariants(phrase) {
+    var results = [];
+    NOVASLAV_DATA.forEach(function (w) {
+      var parsed = parseEntryEn(w.en);
+      if (parsed.alts.indexOf(phrase) !== -1) {
+        results.push({ entry: w, gender: parsed.gender, number: parsed.number });
+      }
+    });
+    return results;
+  }
+
+  // Looks past the current position for the next noun this engine can resolve,
+  // to infer gender agreement for a possessive/adjective earlier in the sentence
+  // ("moja kniga" needs to know "kniga" is feminine before picking "moja" over "moj").
+  function detectUpcomingGender(rawTokens, fromIndex) {
+    var lookahead = Math.min(rawTokens.length, fromIndex + 6);
+    for (var j = fromIndex; j < lookahead; j++) {
+      var w = cleanToken(rawTokens[j]);
+      if (!w) continue;
+      var hit = NOVASLAV_DATA.find(function (entry) {
+        return entry.cat === "Nouns" && altMatches(entry.en, w);
+      });
+      if (hit && (hit.gender === "masculine" || hit.gender === "feminine" || hit.gender === "neuter")) {
+        return hit.gender;
+      }
+    }
+    return null;
+  }
+
+  // Merges a variant's entry fields with its gender/number/assumed metadata into
+  // one flat object, so callers can use it exactly like a plain dictionary entry
+  // (matched.cat, matched.word, matched.past, ...) while still knowing how it was picked.
+  function flattenVariant(v, assumed) {
+    var out = {};
+    for (var k in v.entry) out[k] = v.entry[k];
+    out._gender = v.gender;
+    out._number = v.number;
+    out._assumed = !!assumed;
+    return out;
+  }
+
+  // Resolves which variant to use when a word has more than one gender/number
+  // form. Priority: an explicit manual selector, then auto-detected agreement
+  // from context, then just the first variant (flagged as an assumption).
+  function pickVariant(variants, prefs, rawTokens, fromIndex) {
+    if (variants.length === 1) return flattenVariant(variants[0], false);
+
+    if (prefs.gender !== "auto") {
+      var byPrefGender = variants.find(function (v) { return v.gender === prefs.gender; });
+      if (byPrefGender) return flattenVariant(byPrefGender, false);
+    }
+    if (prefs.number !== "auto") {
+      var byPrefNumber = variants.find(function (v) { return v.number === prefs.number; });
+      if (byPrefNumber) return flattenVariant(byPrefNumber, false);
+    }
+
+    var hasGenderVariants = variants.some(function (v) { return v.gender; });
+    if (hasGenderVariants) {
+      var detected = detectUpcomingGender(rawTokens, fromIndex + 1);
+      if (detected) {
+        var byDetected = variants.find(function (v) { return v.gender === detected; });
+        if (byDetected) return flattenVariant(byDetected, false);
+      }
+    }
+
+    // Couldn't resolve it. If the variants actually differ by gender/number,
+    // flag the guess so the UI can tell the user to check the selectors. If
+    // they're unrelated homonyms (e.g. "love" the verb vs. "love" the noun),
+    // there's nothing to "assume", just pick the first one quietly as before.
+    var hasNumberVariants = variants.some(function (v) { return v.number; });
+    return flattenVariant(variants[0], hasGenderVariants || hasNumberVariants);
   }
 
   // Checks the *whole* dictionary by the Novaslav side too (base word, definite
@@ -119,7 +213,8 @@
   // into Novaslav. Anything it can't find anywhere in the dictionary, in English
   // *or* in Novaslav, gets left as-is in brackets and reported in `missing`
   // instead of failing the whole sentence outright.
-  function translateEnToNov(inputText, tense) {
+  function translateEnToNov(inputText, tense, prefs) {
+    prefs = prefs || { gender: "auto", number: "auto" };
     var clean = inputText.trim().replace(/[.!?]+$/, "");
     if (!clean) return buildError("Type something to translate.");
 
@@ -146,8 +241,14 @@
         var phrase = slice.map(cleanToken).join(" ");
         var phraseCased = slice.map(cleanTokenCased).join(" ");
         if (!phrase) continue;
-        var entry = findByEnglish(phrase) || findByNovaslavWord(phraseCased);
-        if (entry) { matched = entry; matchedLen = len; break; }
+        var variants = findVariants(phrase);
+        if (variants.length) {
+          matched = pickVariant(variants, prefs, rawTokens, i);
+          matchedLen = len;
+          break;
+        }
+        var novEntry = findByNovaslavWord(phraseCased);
+        if (novEntry) { matched = novEntry; matchedLen = len; break; }
       }
 
       if (matched) {
@@ -160,7 +261,13 @@
           outForm = matched.word;
         }
         outWords.push(outForm);
-        breakdown[outForm] = describeMatch(matched, tense, matched.cat === "Nouns" && pendingDefinite);
+        var desc = describeMatch(matched, tense, matched.cat === "Nouns" && pendingDefinite);
+        if (matched._gender || matched._number) {
+          desc += matched._assumed
+            ? " Assumed " + (matched._gender || matched._number) + " (use the Gender/Number selector below to change)."
+            : " (" + (matched._gender || matched._number) + ")";
+        }
+        breakdown[outForm] = desc;
         pendingDefinite = false;
         i += matchedLen;
         continue;
@@ -316,7 +423,13 @@
   function run() {
     var text = document.getElementById("sourceInput").value;
     var tense = document.querySelector('input[name="tense"]:checked').value;
-    var result = state.direction === "en-nov" ? translateEnToNov(text, tense) : translateNovToEn(text);
+    var genderSel = document.getElementById("genderPref");
+    var numberSel = document.getElementById("numberPref");
+    var prefs = {
+      gender: genderSel ? genderSel.value : "auto",
+      number: numberSel ? numberSel.value : "auto"
+    };
+    var result = state.direction === "en-nov" ? translateEnToNov(text, tense, prefs) : translateNovToEn(text);
     render(result, state.direction);
   }
 
@@ -355,6 +468,11 @@
     document.querySelectorAll('input[name="tense"]').forEach(function (r) {
       r.addEventListener("change", run);
     });
+
+    var genderSel = document.getElementById("genderPref");
+    var numberSel = document.getElementById("numberPref");
+    if (genderSel) genderSel.addEventListener("change", run);
+    if (numberSel) numberSel.addEventListener("change", run);
 
     document.getElementById("swapBtn").addEventListener("click", swap);
 

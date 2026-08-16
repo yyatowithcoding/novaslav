@@ -17,16 +17,35 @@
   <div class="container narrow">
 
     <div class="section-head">
-      <span class="eyebrow">Translate</span>
-      <h1>Word Builder</h1>
-      <p class="lede">Type in either box, it translates as you go. Checks the whole dictionary both ways, English meaning or Novôslav spelling, and flags anything it doesn't recognize instead of giving up.</p>
+      <span class="eyebrow" data-i18n>Translate</span>
+      <h1 data-i18n>Word Builder</h1>
+      <p class="lede" data-i18n>Type in either box, it translates as you go. Checks the whole dictionary both ways, English meaning or Novôslav spelling, and flags anything it doesn't recognize instead of giving up.</p>
     </div>
 
-    <div class="field" style="max-width:220px;">
-      <label>Tense (English &rarr; Novôslav only)</label>
-      <div class="radio-group">
-        <label><input type="radio" name="tense" value="pres" checked> Present</label>
-        <label><input type="radio" name="tense" value="past"> Past</label>
+    <div class="field-row" style="max-width:640px;">
+      <div class="field">
+        <label data-i18n>Tense (English &rarr; Novôslav only)</label>
+        <div class="radio-group">
+          <label><input type="radio" name="tense" value="pres" checked> <span data-i18n>Present</span></label>
+          <label><input type="radio" name="tense" value="past"> <span data-i18n>Past</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="genderPref" data-i18n>Gender (when a word has more than one form)</label>
+        <select id="genderPref">
+          <option value="auto" data-i18n>Auto-detect</option>
+          <option value="masculine" data-i18n>Masculine</option>
+          <option value="feminine" data-i18n>Feminine</option>
+          <option value="neuter" data-i18n>Neuter</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="numberPref" data-i18n>Number (when a word has more than one form)</label>
+        <select id="numberPref">
+          <option value="auto" data-i18n>Auto-detect</option>
+          <option value="singular" data-i18n>Singular</option>
+          <option value="plural" data-i18n>Plural</option>
+        </select>
       </div>
     </div>
 
@@ -55,13 +74,13 @@
       <button class="chip" data-example="You see the friend">You see the friend</button>
       <button class="chip" data-example="He is good">He is good</button>
       <button class="chip" data-example="Thank you, friend">Thank you, friend</button>
-      <button class="chip" data-example="I love the spaceship">I love the spaceship (missing word)</button>
-      <button class="chip" data-example="horse">horse (single word)</button>
+      <button class="chip" data-example="I love the spaceship" data-i18n>I love the spaceship (missing word)</button>
+      <button class="chip" data-example="horse" data-i18n>horse (single word)</button>
     </div>
 
     <div class="card" style="margin-top:1.4rem;">
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <h3 style="margin:0;">Grammar breakdown</h3>
+        <h3 style="margin:0;" data-i18n>Grammar breakdown</h3>
         <button class="btn btn-outline btn-sm" id="jsonToggle">Show JSON</button>
       </div>
       <div class="breakdown" id="outBreakdown" style="margin-top:1rem;"></div>
@@ -79,6 +98,7 @@
 
 <script src="/js/data.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/i18n.js"></script>
 <script src="/js/tts.js"></script>
 <script src="/js/translator.js"></script>
 </body>

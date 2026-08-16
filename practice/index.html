@@ -17,14 +17,14 @@
   <div class="container narrow">
 
     <div class="section-head">
-      <span class="eyebrow">Drill</span>
-      <h1>Practice</h1>
-      <p class="lede">Two ways to review vocabulary: flip through flashcards, or test yourself with a quiz.</p>
+      <span class="eyebrow" data-i18n>Drill</span>
+      <h1 data-i18n>Practice</h1>
+      <p class="lede" data-i18n>Two ways to review vocabulary: flip through flashcards, or test yourself with a quiz.</p>
     </div>
 
     <div class="tabs" id="practiceTabs">
-      <button class="tab-btn active" data-tab="flashcards">Flashcards</button>
-      <button class="tab-btn" data-tab="quiz">Quiz</button>
+      <button class="tab-btn active" data-tab="flashcards" data-i18n>Flashcards</button>
+      <button class="tab-btn" data-tab="quiz" data-i18n>Quiz</button>
     </div>
 
     <!-- Flashcards -->
@@ -35,7 +35,7 @@
           <div class="flashcard-inner">
             <div class="flashcard-face front">
               <span class="eng" id="fcFront">···</span>
-              <span class="hint">click to flip</span>
+              <span class="hint" data-i18n>click to flip</span>
             </div>
             <div class="flashcard-face back">
               <span class="cyr" id="fcBackWord" translate="no">···</span>
@@ -44,11 +44,11 @@
           </div>
         </div>
         <div class="flashcard-nav">
-          <button class="btn btn-outline btn-sm" id="fcPrev">&larr; Prev</button>
+          <button class="btn btn-outline btn-sm" id="fcPrev" data-i18n>&larr; Prev</button>
           <span class="flashcard-count" id="fcCount">1 / 1</span>
-          <button class="btn btn-outline btn-sm" id="fcNext">Next &rarr;</button>
+          <button class="btn btn-outline btn-sm" id="fcNext" data-i18n>Next &rarr;</button>
         </div>
-        <button class="btn btn-primary btn-sm" id="fcShuffle">Shuffle</button>
+        <button class="btn btn-primary btn-sm" id="fcShuffle" data-i18n>Shuffle</button>
       </div>
     </section>
 
@@ -56,21 +56,21 @@
     <section class="tab-panel" id="tab-quiz">
       <div id="quizIntro">
         <div class="card">
-          <h3>Quiz Setup</h3>
+          <h3 data-i18n>Quiz Setup</h3>
           <div class="field">
-            <label>Direction</label>
+            <label data-i18n>Direction</label>
             <div class="radio-group">
-              <label><input type="radio" name="quizDir" value="en-nov" checked> English → Novôslav</label>
-              <label><input type="radio" name="quizDir" value="nov-en"> Novôslav → English</label>
+              <label><input type="radio" name="quizDir" value="en-nov" checked> English &rarr; Novôslav</label>
+              <label><input type="radio" name="quizDir" value="nov-en"> Novôslav &rarr; English</label>
             </div>
           </div>
           <div class="field">
-            <label>Category</label>
+            <label data-i18n>Category</label>
             <select id="quizCategory">
-              <option value="All">All categories</option>
+              <option value="All" data-i18n>All categories</option>
             </select>
           </div>
-          <button class="btn btn-primary" id="quizStart">Start Quiz (10 questions)</button>
+          <button class="btn btn-primary" id="quizStart" data-i18n>Start Quiz (10 questions)</button>
         </div>
       </div>
 
@@ -82,9 +82,9 @@
       </div>
 
       <div id="quizResult" class="quiz-result" style="display:none;">
-        <p class="eyebrow">Quiz complete</p>
+        <p class="eyebrow" data-i18n>Quiz complete</p>
         <p class="quiz-score" id="quizScoreText">0 / 10</p>
-        <button class="btn btn-primary" id="quizRetry" style="margin-top:1rem;">Try Again</button>
+        <button class="btn btn-primary" id="quizRetry" style="margin-top:1rem;" data-i18n>Try Again</button>
       </div>
     </section>
 
@@ -95,6 +95,7 @@
 
 <script src="/js/data.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/i18n.js"></script>
 <script src="/js/tts.js"></script>
 <script src="/js/practice.js"></script>
 </body>

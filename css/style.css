@@ -596,15 +596,20 @@ input:focus, select:focus, textarea:focus{
   z-index: 60;
 }
 .lang-picker-menu.open{ display: block; }
-.lang-picker-menu a{
+.lang-picker-menu .lang-option{
   display: block;
+  width: 100%;
+  text-align: left;
   padding: 0.5rem 0.7rem;
   border-radius: 6px;
+  border: none;
+  background: none;
   color: var(--text);
   font-size: 0.9rem;
-  text-decoration: none;
+  font-family: var(--sans);
+  cursor: pointer;
 }
-.lang-picker-menu a:hover{ background: var(--panel-2); color: var(--accent); text-decoration: none; }
+.lang-picker-menu .lang-option:hover{ background: var(--panel-2); color: var(--accent); }
 
 /* ---------- Misc ---------- */
 .divider{ border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
