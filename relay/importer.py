@@ -15,7 +15,7 @@ to type every form by hand.
 
 NOVASLAV_CATEGORIES = [
     "Pronouns", "Verbs", "Nouns", "Adjectives", "Numbers", "Question Words",
-    "Adverbs", "Prepositions", "Conjunctions"
+    "Adverbs", "Prepositions", "Conjunctions", "Interjections", "Conversational"
 ]
 
 _CATEGORY_ALIASES = {
@@ -27,6 +27,7 @@ _CATEGORY_ALIASES = {
     "question word": "Question Words",
     "question": "Question Words",
     "adverb": "Adverbs",
+    "interjection": "Interjections",
     "preposition": "Prepositions",
     "conjunction": "Conjunctions",
 }

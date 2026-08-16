@@ -13,7 +13,7 @@
 
 const NOVASLAV_CATEGORIES = [
   "Pronouns", "Verbs", "Nouns", "Adjectives", "Numbers", "Question Words",
-  "Adverbs", "Prepositions", "Conjunctions"
+  "Adverbs", "Prepositions", "Conjunctions", "Interjections", "Conversational"
 ];
 
 const NOVASLAV_SEED_FALLBACK = [
