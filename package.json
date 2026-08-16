@@ -1,0 +1,13 @@
+{
+  "name": "novaslav",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Novoslav, a constructed language site.",
+  "scripts": {
+    "dev": "wrangler pages dev . --port 8788",
+    "deploy": "wrangler pages deploy . --project-name=novaslav"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

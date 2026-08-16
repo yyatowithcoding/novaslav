@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Novôslav: Alphabet & Grammar</title>
+<meta name="description" content="Learn the Novôslav alphabet, phonology, and grammar rules.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="container">
+
+    <div class="section-head">
+      <span class="eyebrow">Learn</span>
+      <h1>Alphabet & Grammar</h1>
+      <p class="lede">Everything you need to get started: how the letters sound, how words get built, and how sentences fit together.</p>
+    </div>
+
+    <div class="tabs" id="learnTabs">
+      <button class="tab-btn active" data-tab="alphabet">Alphabet</button>
+      <button class="tab-btn" data-tab="phonology">Sound Rules</button>
+      <button class="tab-btn" data-tab="wordorder">Word Order</button>
+      <button class="tab-btn" data-tab="articles">Articles</button>
+      <button class="tab-btn" data-tab="verbs">Verbs</button>
+      <button class="tab-btn" data-tab="lexicon">Building Words</button>
+    </div>
+
+    <!-- Alphabet -->
+    <section class="tab-panel active" id="tab-alphabet">
+      <div class="section">
+        <h2>The Alphabet</h2>
+        <p class="lede">Novôslav is written in plain Latin letters. Three letters aren't pronounced quite how you'd expect: <b>c</b> is "ts" (as in <b>co</b>, "what"), <b>j</b> is "y" (as in <b>Jag</b>, "I"), and <b>y</b> works as a soft vowel/glide (as in <b>yak</b>, "how").</p>
+
+        <h3 style="margin-top:2rem;">Standard letters</h3>
+        <div class="alpha-grid" id="alphaStandard"></div>
+
+        <h3 style="margin-top:2rem;">Accented vowels</h3>
+        <p style="color:var(--text-dim);">Three extra vowels, on top of the regular five. They're part of the language's whole look, so we keep them exactly as they are.</p>
+        <div class="alpha-grid" id="alphaSpecial"></div>
+
+        <h3 style="margin-top:2rem;">Soft consonants</h3>
+        <p style="color:var(--text-dim);">These give Novôslav its melodic quality: a caron over the letter softens it.</p>
+        <div class="alpha-grid" id="alphaSoft"></div>
+
+        <h3 style="margin-top:2rem;">Sibilants</h3>
+        <p style="color:var(--text-dim);">A caron also covers a couple of consonant sounds English usually spells with two letters.</p>
+        <div class="alpha-grid" id="alphaSibilant"></div>
+
+        <div class="note" style="margin-top:1.4rem;">
+          <b>Can't type the accent?</b> Dropping it and using the plain letter is a fine fallback: <code>o</code> for <code>ô</code>, <code>s</code> for <code>š</code>, <code>c</code> for <code>č</code>, <code>d</code>/<code>t</code>/<code>l</code>/<code>n</code> for <code>ď</code>/<code>ť</code>/<code>ľ</code>/<code>ň</code>. It just won't distinguish those words from their unaccented look-alikes.
+        </div>
+      </div>
+    </section>
+
+    <!-- Phonology -->
+    <section class="tab-panel" id="tab-phonology">
+      <div class="section">
+        <h2>Sound Rules</h2>
+
+        <div class="card" style="margin-bottom:1.4rem;">
+          <h3 class="gold">The Rhythmic Law</h3>
+          <p style="color:var(--text-dim);">
+            <b>Two long vowels or accented syllables can't sit next to each other.</b>
+            If a suffix brings in a long vowel and the stem already ends on one, the stem vowel
+            shortens automatically to keep the rhythm balanced.
+          </p>
+          <div class="note">Example: a long stem vowel followed by a long suffix vowel shortens the stem. That's why some roots look slightly different once a suffix gets attached.</div>
+        </div>
+
+        <div class="card">
+          <h3 class="ice">Glide Insertion</h3>
+          <p style="color:var(--text-dim);">
+            When a verb root ends in a vowel and the suffix starts with one too, Novôslav slips
+            a glide consonant <b>y</b> in between so the two vowels don't collide.
+          </p>
+          <div class="note"><b>pi</b> ("drink" root) + <b>-ar</b> &rarr; <b>piyar</b>, not <span style="text-decoration:line-through;">piar</span>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Word order -->
+    <section class="tab-panel" id="tab-wordorder">
+      <div class="section">
+        <h2>Word Order & Sentence Structure</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>Strict SVO</h3>
+            <p style="color:var(--text-dim);">Subject, then verb, then object, always. Novôslav doesn't let you reorder words for emphasis, the order always stays put.</p>
+          </div>
+          <div class="card">
+            <h3>No Case System</h3>
+            <p style="color:var(--text-dim);">Nouns never change form for case. Word order and prepositions do all the work, the same noun form works as subject or object.</p>
+          </div>
+        </div>
+        <div class="example-card" style="margin-top:1.4rem;">
+          <p class="example-novaslav">Ty vidar drugen.</p>
+          <p class="example-english">"You see the friend." Subject <b>ty</b>, verb <b>vidar</b>, object <b>drugen</b>, always in that order.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Articles -->
+    <section class="tab-panel" id="tab-articles">
+      <div class="section">
+        <h2>Articles</h2>
+        <p class="lede">Definiteness gets marked by tacking a suffix onto the end of the noun, instead of using a separate word before it.</p>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3 style="color:var(--accent);">Common gender: <span class="gold">-en</span></h3>
+            <p style="color:var(--text-dim);">Most animate and everyday nouns.</p>
+            <p><b>kôn</b> (horse) &rarr; <b class="ice">kônen</b> (the horse)</p>
+            <p><b>drug</b> (friend) &rarr; <b class="ice">drugen</b> (the friend)</p>
+          </div>
+          <div class="card">
+            <h3 style="color:var(--accent-3);">Neuter: <span class="gold">-et</span></h3>
+            <p style="color:var(--text-dim);">A smaller class of nouns, often abstract.</p>
+            <p><b>serd</b> (heart) &rarr; <b class="ice">serdet</b> (the heart)</p>
+            <p><b>dom</b> (house) &rarr; <b class="ice">domet</b> (the house)</p>
+          </div>
+        </div>
+        <div class="note" style="margin-top:1.2rem;">Indefinite nouns just use the bare stem. Novôslav doesn't have a separate word for "a/an".</div>
+      </div>
+    </section>
+
+    <!-- Verbs -->
+    <section class="tab-panel" id="tab-verbs">
+      <div class="section">
+        <h2>Verb Conjugation</h2>
+        <p class="lede">Verbs only conjugate for <b>tense</b>, never for person or number. The same form works for "I", "you", "he", "we", or "they".</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tense</th><th>Suffix</th><th>Example (root: milu- "love")</th></tr></thead>
+            <tbody>
+              <tr><td>Present</td><td class="gold" style="color:var(--accent-2);">-ar / -er</td><td>miluar, "love(s)"</td></tr>
+              <tr><td>Past</td><td class="gold" style="color:var(--accent-2);">-te / -de</td><td>milude, "loved"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="example-card" style="margin-top:1.4rem;">
+          <p class="example-novaslav">My, ty, on byar dobri.</p>
+          <p class="example-english">"We, you, he, are good." One verb form, no matter the subject.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lexicon -->
+    <section class="tab-panel" id="tab-lexicon">
+      <div class="section">
+        <h2>Building New Words</h2>
+        <p class="lede">To coin a new Novôslav word: start with a consonant-rich root, soften it with a diphthong or two, trim it down, then attach the right suffix.</p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <span class="badge">Example</span>
+            <h3 style="margin-top:0.6rem;">Kôn (Horse)</h3>
+            <p style="color:var(--text-dim);">The root <b>kôn</b> is the word itself, then definite <b class="ice">kônen</b>.</p>
+          </div>
+          <div class="card">
+            <span class="badge">Example</span>
+            <h3 style="margin-top:0.6rem;">Serdet (Heart)</h3>
+            <p style="color:var(--text-dim);">A root like <b>serd</b> takes the neuter definite suffix straight on: <b class="ice">serdet</b>.</p>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:1.4rem;">Want to see this in action with your own word? Try the <a href="/translator/">Word Builder</a>.</div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+    <div class="hero-actions" style="justify-content:flex-start;">
+      <a class="btn btn-primary" href="/dictionary/">Browse the Dictionary</a>
+      <a class="btn btn-outline" href="/practice/">Practice What You Learned</a>
+    </div>
+
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/js/layout.js"></script>
+<script>
+  var STANDARD = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","R","S","T","U","V","Y","Z"];
+  var SPECIAL = [["ä","wide e sound"],["ö","like Swedish ö"],["ô","uo diphthong"]];
+  var SOFT = [["ď","soft d"],["ť","soft t"],["ľ","soft l"],["ň","soft n"]];
+  var SIBILANT = [["š","sh sound"],["č","ch sound"],["ž","zh sound"]];
+
+  function fillGrid(id, items) {
+    var el = document.getElementById(id);
+    el.innerHTML = items.join("");
+  }
+
+  var standardHtml = STANDARD.map(function(ch){
+    return '<div class="alpha-tile"><span class="cyr">'+ch+'</span></div>';
+  });
+  var specialHtml = SPECIAL.map(function(pair){
+    return '<div class="alpha-tile special"><span class="cyr">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
+  });
+  var softHtml = SOFT.map(function(pair){
+    return '<div class="alpha-tile special"><span class="cyr">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
+  });
+  var sibilantHtml = SIBILANT.map(function(pair){
+    return '<div class="alpha-tile special"><span class="cyr">'+pair[0]+'</span><span class="lat">'+pair[1]+'</span></div>';
+  });
+
+  document.addEventListener("DOMContentLoaded", function(){
+    fillGrid("alphaStandard", standardHtml);
+    fillGrid("alphaSpecial", specialHtml);
+    fillGrid("alphaSoft", softHtml);
+    fillGrid("alphaSibilant", sibilantHtml);
+
+    var tabBtns = document.querySelectorAll(".tab-btn");
+    tabBtns.forEach(function(btn){
+      btn.addEventListener("click", function(){
+        tabBtns.forEach(function(b){ b.classList.remove("active"); });
+        document.querySelectorAll(".tab-panel").forEach(function(p){ p.classList.remove("active"); });
+        btn.classList.add("active");
+        document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+  });
+</script>
+</body>
+</html>

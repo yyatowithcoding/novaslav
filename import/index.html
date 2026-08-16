@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Words: Novôslav</title>
+<meta name="description" content="Add new words to the Novôslav dictionary, by typing them in or uploading a text file.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="container narrow">
+
+    <div class="section-head">
+      <span class="eyebrow">Add Words</span>
+      <h1>Import</h1>
+      <p class="lede">Add new words straight into the live dictionary. Type them in below or upload a .txt file, either way uses the same format.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:1.4rem;">
+      <h3>Format</h3>
+      <p style="color:var(--text-dim);">One word per line, fields separated by commas:</p>
+      <pre class="json-view show" style="white-space:pre-wrap;">word, english, category[, gender]</pre>
+      <p style="color:var(--text-dim); font-size:0.9rem;">
+        <b>Word</b> is written in Novôslav's Latin alphabet, plain letters plus the accented ones (ô, š, č, ď, ť, ľ, ň) where needed.<br>
+        <b>Category</b> is one of: Pronouns, Verbs, Nouns, Adjectives, Numbers, Question Words.<br>
+        <b>Gender</b> only matters for Nouns ("common" or "neuter", defaults to common) and controls the definite suffix (-en / -et).<br>
+        For Nouns, the definite form and for Verbs, the past tense, get worked out automatically using the site's own grammar rules, you don't need to type them.<br>
+        Lines starting with <code>#</code> are ignored, handy for comments.
+      </p>
+      <p style="color:var(--text-dim); font-size:0.9rem;">Example:</p>
+      <pre class="json-view show" style="white-space:pre-wrap;"># a noun (definite form "kotet" gets worked out for you)
+kot, cat, Nouns, neuter
+
+# a verb (past tense "čitde" gets worked out for you)
+čitar, read, Verbs</pre>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="fileInput">Upload a .txt file (optional, fills the box below)</label>
+        <input type="file" id="fileInput" accept=".txt,text/plain">
+      </div>
+
+      <div class="field">
+        <label for="importText">Words to add</label>
+        <textarea id="importText" rows="10" placeholder="kot, cat, Nouns"></textarea>
+      </div>
+
+      <div class="field" style="max-width:320px;">
+        <label for="importPassword">Import password</label>
+        <input type="password" id="importPassword" placeholder="Password">
+      </div>
+
+      <button class="btn btn-primary" id="importBtn">Add These Words</button>
+    </div>
+
+    <div id="importResult" style="margin-top:2rem; display:none;"></div>
+
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/js/layout.js"></script>
+<script src="/js/import.js"></script>
+</body>
+</html>

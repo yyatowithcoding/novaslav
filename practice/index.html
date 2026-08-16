@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Novôslav: Flashcards & Quiz</title>
+<meta name="description" content="Drill Novôslav vocabulary with flashcards and a multiple-choice quiz.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="container narrow">
+
+    <div class="section-head">
+      <span class="eyebrow">Drill</span>
+      <h1>Practice</h1>
+      <p class="lede">Two ways to review vocabulary: flip through flashcards, or test yourself with a quiz.</p>
+    </div>
+
+    <div class="tabs" id="practiceTabs">
+      <button class="tab-btn active" data-tab="flashcards">Flashcards</button>
+      <button class="tab-btn" data-tab="quiz">Quiz</button>
+    </div>
+
+    <!-- Flashcards -->
+    <section class="tab-panel active" id="tab-flashcards">
+      <div class="chip-row" id="fcCategoryChips"></div>
+      <div class="flashcard-stage">
+        <div class="flashcard" id="flashcard">
+          <div class="flashcard-inner">
+            <div class="flashcard-face front">
+              <span class="eng" id="fcFront">···</span>
+              <span class="hint">click to flip</span>
+            </div>
+            <div class="flashcard-face back">
+              <span class="cyr" id="fcBackWord">···</span>
+              <span class="hint" id="fcBackExtra"></span>
+            </div>
+          </div>
+        </div>
+        <div class="flashcard-nav">
+          <button class="btn btn-outline btn-sm" id="fcPrev">&larr; Prev</button>
+          <span class="flashcard-count" id="fcCount">1 / 1</span>
+          <button class="btn btn-outline btn-sm" id="fcNext">Next &rarr;</button>
+        </div>
+        <button class="btn btn-primary btn-sm" id="fcShuffle">Shuffle</button>
+      </div>
+    </section>
+
+    <!-- Quiz -->
+    <section class="tab-panel" id="tab-quiz">
+      <div id="quizIntro">
+        <div class="card">
+          <h3>Quiz Setup</h3>
+          <div class="field">
+            <label>Direction</label>
+            <div class="radio-group">
+              <label><input type="radio" name="quizDir" value="en-nov" checked> English → Novôslav</label>
+              <label><input type="radio" name="quizDir" value="nov-en"> Novôslav → English</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <select id="quizCategory">
+              <option value="All">All categories</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="quizStart">Start Quiz (10 questions)</button>
+        </div>
+      </div>
+
+      <div id="quizPlay" style="display:none;">
+        <div class="quiz-progress"><div class="quiz-progress-bar" id="quizProgressBar"></div></div>
+        <p class="quiz-sub" id="quizProgressText"></p>
+        <p class="quiz-prompt" id="quizPrompt">···</p>
+        <div class="quiz-options" id="quizOptions"></div>
+      </div>
+
+      <div id="quizResult" class="quiz-result" style="display:none;">
+        <p class="eyebrow">Quiz complete</p>
+        <p class="quiz-score" id="quizScoreText">0 / 10</p>
+        <button class="btn btn-primary" id="quizRetry" style="margin-top:1rem;">Try Again</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/js/data.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/practice.js"></script>
+</body>
+</html>

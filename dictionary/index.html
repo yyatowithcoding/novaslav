@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novôslav Dictionary</title>
+<meta name="description" content="Search and filter the Novôslav vocabulary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="container">
+
+    <div class="section-head">
+      <span class="eyebrow">Reference</span>
+      <h1>Dictionary</h1>
+      <p class="lede">The growing Novôslav word list. Search by English or Novôslav, or filter by category.</p>
+    </div>
+
+    <div class="field" style="max-width:420px;">
+      <label for="searchBox">Search</label>
+      <input type="search" id="searchBox" placeholder="Search in English or Novôslav...">
+    </div>
+
+    <div class="chip-row" id="categoryChips"></div>
+
+    <p class="lede" id="resultCount" style="font-size:0.9rem;"></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Novôslav</th>
+            <th>English</th>
+          </tr>
+        </thead>
+        <tbody id="dictBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none;">No words match your search.</div>
+
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/js/data.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/dictionary.js"></script>
+</body>
+</html>

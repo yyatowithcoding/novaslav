@@ -1,0 +1,11 @@
+# Copy this file to .dev.vars for local `wrangler pages dev`. Never commit the real .dev.vars.
+# For production, set these as secrets instead: npx wrangler pages secret put RELAY_URL (etc).
+
+# Where your relay/bot.py is reachable. Point at localhost while developing locally.
+RELAY_URL=http://localhost:8787
+
+# Must match RELAY_SECRET in relay/.env exactly.
+RELAY_SECRET=change-me-to-a-long-random-string
+
+# Password required to submit the /import/ form. Leave unset to disable the check (not recommended once deployed).
+IMPORT_PASSWORD=change-me-too

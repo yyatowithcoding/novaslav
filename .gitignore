@@ -1,0 +1,15 @@
+# Cloudflare / wrangler
+.wrangler/
+.dev.vars
+node_modules/
+
+# Python relay
+relay/.env
+relay/__pycache__/
+relay/venv/
+relay/.venv/
+**/__pycache__/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
