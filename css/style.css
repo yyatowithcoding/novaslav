@@ -569,29 +569,42 @@ input:focus, select:focus, textarea:focus{
 }
 .swap-btn:hover{ border-color: var(--accent); background: var(--panel-2); }
 
-/* ---------- Site translate widget ---------- */
-#google_translate_element{
-  font-size: 0.85rem;
+/* ---------- Site language picker ---------- */
+.lang-picker{ position: relative; }
+.lang-picker-btn{
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
 }
-#google_translate_element .goog-te-gadget{
-  color: var(--text-dim) !important;
-  font-family: var(--sans) !important;
-  font-size: 0 !important;
+.lang-picker-btn:hover{ border-color: var(--accent); }
+.lang-picker-menu{
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+  min-width: 160px;
+  z-index: 60;
 }
-#google_translate_element .goog-te-gadget-simple{
-  background: var(--panel) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 999px !important;
-  padding: 0.35rem 0.7rem !important;
-  display: inline-flex !important;
-  align-items: center !important;
+.lang-picker-menu.open{ display: block; }
+.lang-picker-menu a{
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-decoration: none;
 }
-#google_translate_element .goog-te-gadget-simple span{
-  color: var(--text) !important;
-  font-size: 0.8rem !important;
-}
-.notranslate{ }
-body > .skiptranslate{ display: none !important; }
+.lang-picker-menu a:hover{ background: var(--panel-2); color: var(--accent); text-decoration: none; }
 
 /* ---------- Misc ---------- */
 .divider{ border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }

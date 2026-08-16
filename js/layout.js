@@ -14,6 +14,23 @@
     return path;
   }
 
+  // Real languages Novaslav's design draws from. Google's own translate-link
+  // redirect (not the embeddable widget, which has become unreliable, clicks
+  // on it silently do nothing) translates the site's English UI into one of
+  // these on Google's side. Can't (and shouldn't) touch the Novaslav words
+  // themselves, those are marked translate="no" everywhere they appear.
+  var SITE_LANGS = [
+    { code: "sk", label: "Slovenčina" },
+    { code: "cs", label: "Čeština" },
+    { code: "pl", label: "Polski" },
+    { code: "hr", label: "Hrvatski" },
+    { code: "ru", label: "Русский" }
+  ];
+
+  function translateLinkHref(code) {
+    return "https://translate.google.com/translate?sl=en&tl=" + code + "&u=" + encodeURIComponent(window.location.href);
+  }
+
   function renderHeader() {
     var cur = currentPath();
     var links = NAV_LINKS.map(function (l) {
@@ -21,36 +38,23 @@
       return '<li><a class="' + active.trim() + '" href="' + l.href + '">' + l.label + "</a></li>";
     }).join("");
 
+    var langLinks = SITE_LANGS.map(function (l) {
+      return '<a href="' + translateLinkHref(l.code) + '" target="_blank" rel="noopener">' + l.label + "</a>";
+    }).join("");
+
     return (
       '<header class="site-header">' +
       '<div class="nav-wrap">' +
       '<a class="logo" href="/">Nov<span>ô</span>slav</a>' +
       '<nav class="main-nav" id="mainNav"><ul>' + links + "</ul></nav>" +
-      '<div id="google_translate_element" class="notranslate"></div>' +
+      '<div class="lang-picker">' +
+      '<button class="lang-picker-btn" id="langPickerBtn" aria-label="Read this site in another language">🌐</button>' +
+      '<div class="lang-picker-menu" id="langPickerMenu">' + langLinks + "</div>" +
+      "</div>" +
       '<button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>' +
       "</div>" +
       "</header>"
     );
-  }
-
-  // Lets visitors read the site's English UI text in one of the real languages
-  // Novaslav's design draws from. Doesn't (and can't) translate the Novaslav
-  // words themselves, those are marked translate="no"/class="notranslate"
-  // wherever they appear so Google's widget leaves them alone.
-  function loadSiteTranslate() {
-    if (window.__novaslavGTLoaded) return;
-    window.__novaslavGTLoaded = true;
-    window.googleTranslateElementInit = function () {
-      new google.translate.TranslateElement({
-        pageLanguage: "en",
-        includedLanguages: "sk,cs,pl,hr,ru",
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-      }, "google_translate_element");
-    };
-    var script = document.createElement("script");
-    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-    document.head.appendChild(script);
   }
 
   function renderFooter() {
@@ -79,6 +83,16 @@
       });
     }
 
-    loadSiteTranslate();
+    var langBtn = document.getElementById("langPickerBtn");
+    var langMenu = document.getElementById("langPickerMenu");
+    if (langBtn && langMenu) {
+      langBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        langMenu.classList.toggle("open");
+      });
+      document.addEventListener("click", function () {
+        langMenu.classList.remove("open");
+      });
+    }
   });
 })();
