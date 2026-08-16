@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Generate new Novaslav vocabulary with Gemini, deduped against what's already live.
+"""Generate new Novaslav vocabulary with Groq (free, no credit card), deduped
+against what's already live.
 
 Zero extra pip installs, standard library only. Reuses relay/importer.py directly
 so this tool can never accept something the live import endpoint would reject
 (or vice versa) -- there's exactly one copy of the format/conjugation rules.
 
 Setup (one time):
-    Get a Gemini API key: https://aistudio.google.com/apikey
+    Get a free Groq API key: https://console.groq.com/keys
     Set it as an environment variable, never paste it into a chat or commit it:
-        Windows (PowerShell):  $env:GEMINI_API_KEY = "your-key-here"
-        macOS/Linux:            export GEMINI_API_KEY="your-key-here"
+        Windows (PowerShell):  $env:GROQ_API_KEY = "your-key-here"
+        macOS/Linux:            export GROQ_API_KEY="your-key-here"
 
 Usage:
     python gen_words.py --topic "kitchen items" --count 20
@@ -18,11 +19,11 @@ Usage:
 What it does:
     1. Fetches the live dictionary from --api-url (defaults to the production site)
        so it knows exactly which spellings are already taken.
-    2. Builds a prompt for Gemini: the format rules, the allowed categories and
-       accented letters, the full list of existing spellings to avoid, and your topic.
-    3. Runs Gemini's answer through the *same* parse_import_text() the server uses,
-       plus a local version of the same word-collision guardrail (same spelling,
-       different meaning = rejected).
+    2. Builds a prompt: the format rules, the allowed categories and accented
+       letters, the full list of existing spellings to avoid, and your topic.
+    3. Runs the model's answer through the *same* parse_import_text() the server
+       uses, plus a local version of the same word-collision guardrail (same
+       spelling, different meaning = rejected).
     4. Writes whatever survives to a plain text file, ready to paste into /import/
        or submit directly with --submit.
 
@@ -41,7 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "relay"))
 from importer import NOVASLAV_CATEGORIES, parse_import_text  # noqa: E402
 
 DEFAULT_API_URL = "https://novaslav.pages.dev"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "llama-3.3-70b-versatile"
 ALLOWED_ACCENTS = "ô ä ö š č ž ď ť ľ ň ê"
 
 USER_AGENT = "novaslav-gen-words-tool/1.0"
@@ -93,16 +94,21 @@ outside a-z plus {ALLOWED_ACCENTS}, no category outside the list above, no spell
 from the existing list."""
 
 
-def call_gemini(prompt, api_key, model):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+def call_groq(prompt, api_key, model):
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.8,
+    }
     try:
-        data = http_post_json(url, {"contents": [{"parts": [{"text": prompt}]}]}, headers={"x-goog-api-key": api_key})
+        data = http_post_json(url, payload, headers={"Authorization": f"Bearer {api_key}"})
     except urllib.error.HTTPError as e:
-        sys.exit(f"Gemini API error {e.code}: {e.read().decode('utf-8', 'replace')}")
+        sys.exit(f"Groq API error {e.code}: {e.read().decode('utf-8', 'replace')}")
     try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+        return data["choices"][0]["message"]["content"]
     except (KeyError, IndexError):
-        sys.exit(f"Unexpected Gemini response shape: {data}")
+        sys.exit(f"Unexpected Groq response shape: {data}")
 
 
 def validate(raw_text, existing_words):
@@ -151,9 +157,9 @@ def main():
     parser.add_argument("--password", default=os.environ.get("IMPORT_PASSWORD", ""), help="Import password (only needed with --submit)")
     args = parser.parse_args()
 
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key:
-        sys.exit("Set GEMINI_API_KEY as an environment variable first (see the top of this file for how).")
+        sys.exit("Set GROQ_API_KEY as an environment variable first (see the top of this file for how).")
 
     print(f"Fetching existing dictionary from {args.api_url} ...")
     existing = fetch_existing_words(args.api_url)
@@ -161,7 +167,7 @@ def main():
 
     prompt = build_prompt(args.topic, args.count, existing)
     print(f"Asking {args.model} for {args.count} words about '{args.topic}' ...")
-    raw = call_gemini(prompt, api_key, args.model)
+    raw = call_groq(prompt, api_key, args.model)
 
     entries, errors = validate(raw, existing)
     print(f"\n{len(entries)} clean, {len(errors)} rejected.")
