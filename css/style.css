@@ -483,6 +483,26 @@ input:focus, select:focus, textarea:focus{
 .quiz-score{ font-family: var(--serif); font-size: 1.4rem; color: var(--accent-2); }
 .quiz-result{ text-align: center; padding: 2rem 0; }
 
+/* ---------- Speak button ---------- */
+.speak-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  padding: 0;
+}
+.speak-btn:hover{ border-color: var(--accent); color: var(--accent); }
+
 /* ---------- Misc ---------- */
 .divider{ border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
 .note{

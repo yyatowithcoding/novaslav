@@ -28,10 +28,11 @@
       <pre class="json-view show" style="white-space:pre-wrap;">word, english, category[, gender]</pre>
       <p style="color:var(--text-dim); font-size:0.9rem;">
         <b>Word</b> is written in Novôslav's Latin alphabet, plain letters plus the accented ones (ô, š, č, ď, ť, ľ, ň) where needed.<br>
-        <b>Category</b> is one of: Pronouns, Verbs, Nouns, Adjectives, Numbers, Question Words.<br>
+        <b>Category</b> is one of: Pronouns, Verbs, Nouns, Adjectives, Numbers, Question Words, Adverbs, Prepositions, Conjunctions.<br>
         <b>Gender</b> only matters for Nouns ("common" or "neuter", defaults to common) and controls the definite suffix (-en / -et).<br>
         For Nouns, the definite form and for Verbs, the past tense, get worked out automatically using the site's own grammar rules, you don't need to type them.<br>
-        Lines starting with <code>#</code> are ignored, handy for comments.
+        Lines starting with <code>#</code> are ignored, handy for comments.<br>
+        <b>Guardrail:</b> the same Novaslav spelling can't be reused for two different meanings, whether the clash is against another line in the same import or a word already in the dictionary. Those lines get rejected with an error instead of silently creating a duplicate.
       </p>
       <p style="color:var(--text-dim); font-size:0.9rem;">Example:</p>
       <pre class="json-view show" style="white-space:pre-wrap;"># a noun (definite form "kotet" gets worked out for you)

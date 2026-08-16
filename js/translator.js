@@ -190,7 +190,8 @@
     errorWrap.style.display = "none";
     outputWrap.style.display = "block";
 
-    document.getElementById("outNovaslav").textContent = result.novaslav;
+    var speakBtn = window.NovaslavTTS ? window.NovaslavTTS.button(result.novaslav.replace(/\.$/, "")) : "";
+    document.getElementById("outNovaslav").innerHTML = result.novaslav + speakBtn;
     document.getElementById("outEnglish").textContent = '"' + result.english_translation + '"';
 
     var bd = document.getElementById("outBreakdown");

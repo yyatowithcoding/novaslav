@@ -21,7 +21,8 @@
     var w = fc.deck[fc.index];
     if (!w) return;
     document.getElementById("fcFront").textContent = w.en;
-    document.getElementById("fcBackWord").textContent = w.word;
+    var speakBtn = window.NovaslavTTS ? window.NovaslavTTS.button(w.word) : "";
+    document.getElementById("fcBackWord").innerHTML = w.word + speakBtn;
     document.getElementById("fcBackExtra").textContent = fcBackExtra(w);
     document.getElementById("fcCount").textContent = (fc.index + 1) + " / " + fc.deck.length;
   }

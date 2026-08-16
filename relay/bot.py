@@ -22,14 +22,18 @@ import discord
 from aiohttp import web
 from dotenv import load_dotenv
 
-from db import insert_words, list_words
-from importer import parse_import_text
-
+# Must run before importing db.py, which reads MONGODB_URI from the
+# environment at import time.
 load_dotenv()
+
+from db import find_conflicts, insert_words, list_words
+from importer import parse_import_text
 
 DISCORD_BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN", "")
 RELAY_SECRET = os.environ.get("RELAY_SECRET", "")
-RELAY_PORT = int(os.environ.get("RELAY_PORT", "8787"))
+# Some hosts (e.g. bot-hosting.cloud) assign the port to bind via SERVER_PORT
+# instead of letting you pick one, so prefer that if it's set.
+RELAY_PORT = int(os.environ.get("SERVER_PORT") or os.environ.get("RELAY_PORT", "8787"))
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("novaslav-relay")
@@ -65,6 +69,10 @@ async def handle_import(request):
 
     text = body.get("text", "")
     entries, errors = parse_import_text(text)
+
+    if entries:
+        entries, conflict_errors = await find_conflicts(entries)
+        errors = errors + conflict_errors
 
     added, skipped = (0, 0)
     if entries:

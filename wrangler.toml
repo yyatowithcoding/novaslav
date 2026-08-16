@@ -1,3 +1,10 @@
 name = "novaslav"
 compatibility_date = "2024-09-23"
 pages_build_output_dir = "."
+
+# Caches the last-known-good word list so the site keeps serving real (not just
+# bundled-fallback) words even when the relay bot is offline. Local `wrangler
+# pages dev` uses a local KV store automatically, separate from this production one.
+[[kv_namespaces]]
+binding = "WORDS_CACHE"
+id = "4377e730f264466495e69527f9c00bed"

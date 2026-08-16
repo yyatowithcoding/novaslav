@@ -16,9 +16,10 @@
     });
 
     tbody.innerHTML = filtered.map(function (w) {
+      var speakBtn = window.NovaslavTTS ? window.NovaslavTTS.button(w.word) : "";
       return (
         "<tr>" +
-        '<td><span style="font-family:var(--serif); font-size:1.15rem; color:#fff;">' + w.word + "</span></td>" +
+        '<td><span style="font-family:var(--serif); font-size:1.15rem; color:#fff;">' + w.word + "</span>" + speakBtn + "</td>" +
         "<td>" + w.en + "</td>" +
         "</tr>"
       );

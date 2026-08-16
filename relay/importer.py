@@ -13,7 +13,10 @@ the same suffix rules documented on the site's Learn page, so you don't have
 to type every form by hand.
 """
 
-NOVASLAV_CATEGORIES = ["Pronouns", "Verbs", "Nouns", "Adjectives", "Numbers", "Question Words"]
+NOVASLAV_CATEGORIES = [
+    "Pronouns", "Verbs", "Nouns", "Adjectives", "Numbers", "Question Words",
+    "Adverbs", "Prepositions", "Conjunctions"
+]
 
 _CATEGORY_ALIASES = {
     "pronoun": "Pronouns",
@@ -23,6 +26,9 @@ _CATEGORY_ALIASES = {
     "number": "Numbers",
     "question word": "Question Words",
     "question": "Question Words",
+    "adverb": "Adverbs",
+    "preposition": "Prepositions",
+    "conjunction": "Conjunctions",
 }
 
 

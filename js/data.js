@@ -12,7 +12,8 @@
    gender: "common" (-en) or "neuter" (-et), used for definite nouns. */
 
 const NOVASLAV_CATEGORIES = [
-  "Pronouns", "Verbs", "Nouns", "Adjectives", "Numbers", "Question Words"
+  "Pronouns", "Verbs", "Nouns", "Adjectives", "Numbers", "Question Words",
+  "Adverbs", "Prepositions", "Conjunctions"
 ];
 
 const NOVASLAV_SEED_FALLBACK = [
@@ -44,7 +45,7 @@ const NOVASLAV_SEED_FALLBACK = [
   { word: "serd", en: "heart", cat: "Nouns", gender: "neuter", def: "serdet" },
   { word: "dom", en: "house", cat: "Nouns", gender: "neuter", def: "domet" },
   { word: "vod", en: "water", cat: "Nouns", gender: "common", def: "voden" },
-  { word: "drug", en: "friend", cat: "Nouns", gender: "common", def: "drugen" },
+  { word: "druh", en: "friend", cat: "Nouns", gender: "common", def: "druhen" },
   { word: "knig", en: "book", cat: "Nouns", gender: "common", def: "knigen" },
   { word: "sôln", en: "sun", cat: "Nouns", gender: "common", def: "sôlnen" },
   { word: "lun", en: "moon", cat: "Nouns", gender: "common", def: "lunen" },

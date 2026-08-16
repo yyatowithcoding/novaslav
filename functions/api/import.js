@@ -3,6 +3,24 @@
 // who find the /import/ page can't spam the dictionary.
 // Gate 2 (relay side): this Function must know RELAY_SECRET to talk to the relay bot at all.
 // Neither secret is ever sent to the browser.
+//
+// After a successful import, also refreshes the WORDS_CACHE KV snapshot immediately,
+// so newly-added words show up right away even if the relay goes offline right after.
+
+const CACHE_KEY = "words";
+
+async function refreshCache(env) {
+  try {
+    const res = await fetch(new URL("/api/words", env.RELAY_URL), {
+      headers: { Authorization: `Bearer ${env.RELAY_SECRET}` }
+    });
+    if (res.ok && env.WORDS_CACHE) {
+      await env.WORDS_CACHE.put(CACHE_KEY, await res.text());
+    }
+  } catch (err) {
+    // Best-effort only, the next successful GET /api/words will refresh it anyway.
+  }
+}
 
 export async function onRequestPost(context) {
   const { env, request } = context;
@@ -41,6 +59,9 @@ export async function onRequestPost(context) {
     });
 
     const data = await res.text();
+    if (res.ok) {
+      context.waitUntil(refreshCache(env));
+    }
     return new Response(data, {
       status: res.status,
       headers: { "content-type": "application/json" }
