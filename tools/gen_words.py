@@ -119,13 +119,28 @@ def call_groq(prompt, api_key, model):
         sys.exit(f"Unexpected Groq response shape: {data}")
 
 
+def meaning_parts(en):
+    """Splits an "en" field like "watch strap" or "cheap / inexpensive" into its
+    lowercased alternates, for exact (not fuzzy) meaning-collision checks."""
+    return {p.strip().lower() for p in en.split("/") if p.strip()}
+
+
 def validate(raw_text, existing_words):
     """Runs the exact same parser the server uses, then applies the same
-    word-collision guardrail locally (spelling already used = reject)."""
+    word-collision guardrail locally (spelling already used = reject), plus a
+    meaning-collision check: the prompt *asks* the model not to reinvent an
+    existing concept under a new spelling, but that's just an instruction, not
+    a guarantee, models get this wrong often enough at 400+ existing words that
+    it needs to be caught here for real instead of just hoped for."""
     entries, errors = parse_import_text(raw_text)
 
     existing_by_word = {w["word"]: w["en"] for w in existing_words}
+    existing_meanings = set()
+    for w in existing_words:
+        existing_meanings |= meaning_parts(w["en"])
+
     seen = {}
+    seen_meanings = set()
     clean = []
     for e in entries:
         word, en = e["word"], e["en"]
@@ -135,7 +150,18 @@ def validate(raw_text, existing_words):
         if word in seen and seen[word] != en:
             errors.append(f'"{word}" used twice in this batch ("{seen[word]}" and "{en}"), dropping both')
             continue
+
+        parts = meaning_parts(en)
+        overlap = parts & existing_meanings
+        if overlap:
+            errors.append(f'"{word}" ({en}) means the same thing as an existing word ("{", ".join(sorted(overlap))}"), dropping it')
+            continue
+        if parts & seen_meanings:
+            errors.append(f'"{word}" ({en}) duplicates another word already generated in this same batch, dropping it')
+            continue
+
         seen[word] = en
+        seen_meanings |= parts
         clean.append(e)
     return clean, errors
 
