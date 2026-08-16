@@ -1,5 +1,5 @@
 /* Pronunciation playback via the browser's built-in speech synthesis.
-   No server involved, works for any word including ones just added through /import/.
+   No server involved, works for any word including newly-added ones.
    Novaslav isn't a real language a TTS engine knows, so this picks the closest-sounding
    real voice available (Slovak/Czech/Polish) and reads the Latin spelling through it,
    an approximation, not authoritative pronunciation. */

@@ -19,7 +19,7 @@
     <div class="section-head">
       <span class="eyebrow">Rule Engine</span>
       <h1>Word Builder</h1>
-      <p class="lede">Type a simple English sentence (or just a single word) using vocabulary from the <a href="/dictionary/">Dictionary</a>, and this tool runs it through Novôslav's grammar: SVO order, articles tacked onto the noun, verbs that only change for tense.</p>
+      <p class="lede">Type any English sentence. It'll translate as much as it can, checking both English meanings and Novôslav spellings across the whole dictionary, and flag anything it doesn't recognize instead of just giving up.</p>
     </div>
 
     <div class="card">
@@ -43,6 +43,8 @@
         <button class="chip" data-example="You see the friend">You see the friend</button>
         <button class="chip" data-example="He is good">He is good</button>
         <button class="chip" data-example="We have a book">We have a book</button>
+        <button class="chip" data-example="Thank you, friend">Thank you, friend</button>
+        <button class="chip" data-example="I love the spaceship">I love the spaceship (missing word)</button>
         <button class="chip" data-example="horse">horse (single word)</button>
       </div>
     </div>
@@ -59,14 +61,16 @@
       </div>
     </div>
 
+    <div id="missingWrap" class="note" style="margin-top:1.2rem; display:none;"></div>
+
     <div id="errorWrap" style="margin-top:2rem; display:none;">
       <div class="note" id="errorText"></div>
     </div>
 
     <div class="note" style="margin-top:2rem;">
-      <b>Patterns it understands:</b> "I love the horse" · "You see a friend" · "He is good" · "We have the book" ·
-      or just a single word like "friend". Pronouns: I, you, he, she, it, we, they. The full verb/noun/adjective list lives in the
-      <a href="/dictionary/">Dictionary</a>.
+      Checks the whole dictionary both ways: type an English word or a Novôslav one, either works. Anything it can't find
+      gets left in <code>[brackets]</code> and listed below the translation instead of stopping the whole thing. Pronouns
+      recognized: I, you, he, she, it, we, they. Full list is in the <a href="/dictionary/">Dictionary</a>.
     </div>
 
   </div>

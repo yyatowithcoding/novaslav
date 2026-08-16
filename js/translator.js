@@ -25,164 +25,192 @@
     want: "want", eat: "eat", drink: "drink", do: "do / make", know: "know", say: "say"
   };
 
-  function findWord(cat, en) {
-    return NOVASLAV_DATA.find(function (w) { return w.cat === cat && w.en === en; });
-  }
-
-  function findNounByEnglish(word) {
-    return NOVASLAV_DATA.find(function (w) {
-      if (w.cat !== "Nouns") return false;
-      return w.en.toLowerCase().replace(" (noun)", "") === word;
-    });
-  }
-
-  function findAdjectiveByEnglish(word) {
-    return NOVASLAV_DATA.find(function (w) { return w.cat === "Adjectives" && w.en.toLowerCase() === word; });
-  }
+  var MAX_PHRASE_WORDS = 4;
 
   function capitalize(s) {
     if (!s) return s;
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
-  function stripArticle(tokens) {
-    var definite = false, indefinite = false;
-    if (tokens[0] === "the") { definite = true; tokens = tokens.slice(1); }
-    else if (tokens[0] === "a" || tokens[0] === "an") { indefinite = true; tokens = tokens.slice(1); }
-    return { definite: definite, indefinite: indefinite, rest: tokens };
+  function cleanToken(t) {
+    return t.toLowerCase().replace(/[.,!?;:"'()]/g, "").trim();
   }
 
-  function wordLookup(word) {
-    var matches = NOVASLAV_DATA.filter(function (w) {
-      return w.en.toLowerCase().replace(" (noun)", "") === word || w.en.toLowerCase() === word;
-    });
-    if (!matches.length) return null;
-    return matches;
+  function findWord(cat, en) {
+    return NOVASLAV_DATA.find(function (w) { return w.cat === cat && w.en === en; });
+  }
+
+  // English "en" fields can hold alternates ("go / walk") and parenthetical
+  // qualifiers ("love (noun)", "you (singular)"). Match against any of them.
+  function altMatches(enField, target) {
+    if (!enField) return false;
+    var alts = enField.split("/").map(function (s) { return s.trim().toLowerCase(); });
+    for (var i = 0; i < alts.length; i++) {
+      var alt = alts[i];
+      var bare = alt.replace(/\s*\([^)]*\)\s*/g, "").trim();
+      if (alt === target || bare === target) return true;
+    }
+    return false;
+  }
+
+  // Checks the *whole* dictionary by English meaning.
+  function findByEnglish(phrase) {
+    if (!phrase) return null;
+    return NOVASLAV_DATA.find(function (w) { return altMatches(w.en, phrase); }) || null;
+  }
+
+  // Checks the *whole* dictionary by the Novaslav side too (base word, definite
+  // form, present, or past), so typing an already-Novaslav word or phrase works.
+  function findByNovaslavWord(phrase) {
+    if (!phrase) return null;
+    var p = phrase.toLowerCase();
+    return NOVASLAV_DATA.find(function (w) {
+      return (w.word && w.word.toLowerCase() === p) ||
+        (w.def && w.def.toLowerCase() === p) ||
+        (w.pres && w.pres.toLowerCase() === p) ||
+        (w.past && w.past.toLowerCase() === p);
+    }) || null;
+  }
+
+  function describeMatch(entry, tense, wasDefinite) {
+    if (entry.cat === "Verbs") {
+      return 'Verb ("' + entry.en + '"), ' + (tense === "past" ? "past" : "present") + " tense, same form no matter the subject.";
+    }
+    if (entry.cat === "Nouns") {
+      return 'Noun ("' + entry.en + '")' + (wasDefinite ? ", definite form." : ", indefinite base form.");
+    }
+    if (entry.cat === "Adjectives") {
+      return 'Adjective ("' + entry.en + '"). Adjectives don’t inflect.';
+    }
+    if (entry.cat === "Pronouns") {
+      return 'Pronoun ("' + entry.en + '").';
+    }
+    return capitalize(entry.cat.replace(/s$/, "")) + ' ("' + entry.en + '").';
   }
 
   function buildError(msg) {
     return { error: msg };
   }
 
+  // Best-effort, word-by-word (and phrase-by-phrase) translation. Anything it
+  // can't find anywhere in the dictionary, in English *or* in Novaslav, gets
+  // left as-is in brackets and reported in `missing` instead of failing outright.
   function translate(inputText, tense) {
     var clean = inputText.trim().replace(/[.!?]+$/, "");
     if (!clean) return buildError("Type something to build.");
 
     var rawTokens = clean.split(/\s+/);
-    var tokens = rawTokens.map(function (t) { return t.toLowerCase(); });
-
-    // Single word lookup mode
-    if (tokens.length === 1) {
-      var matches = wordLookup(tokens[0]);
-      if (!matches) {
-        return buildError('"' + rawTokens[0] + '" isn’t in the dictionary yet. Try a word from the Dictionary page.');
-      }
-      var m = matches[0];
-      var breakdown = {};
-      var novOut = m.word;
-      if (m.cat === "Nouns") {
-        novOut = m.word + " / " + m.def;
-        breakdown[m.word] = "Noun, indefinite base form.";
-        breakdown[m.def] = "Definite form (\"the " + m.en + "\"), " + (m.gender || "common") + " gender suffix.";
-      } else if (m.cat === "Verbs") {
-        novOut = m.pres + " / " + m.past;
-        breakdown[m.pres] = "Present tense.";
-        breakdown[m.past] = "Past tense.";
-      } else {
-        breakdown[m.word] = capitalize(m.cat.replace(/s$/, ""));
-      }
-      return {
-        mode: "word",
-        novaslav: novOut,
-        english_translation: m.en,
-        grammar_breakdown: breakdown
-      };
-    }
-
-    // Sentence mode
-    var pronounKey = PRONOUN_MAP[tokens[0]];
-    if (!pronounKey) {
-      return buildError('Unknown subject "' + rawTokens[0] + '". Try: I, you, he, she, it, we, they.');
-    }
-    var pronounEntry = findWord("Pronouns", pronounKey);
-    var rest = tokens.slice(1);
-    if (!rest.length) {
-      return buildError("Add a verb after the subject, e.g. \"" + rawTokens[0] + " love the horse\".");
-    }
-
+    var isSingleWordInput = rawTokens.length === 1;
+    var outWords = [];
     var breakdown = {};
-    breakdown[pronounEntry.word] = "Pronoun (\"" + pronounEntry.en + "\").";
+    var missing = [];
+    var pendingDefinite = false;
 
-    var outTokens = [pronounEntry.word];
+    var i = 0;
+    while (i < rawTokens.length) {
+      var raw = rawTokens[i];
+      var lower = cleanToken(raw);
+      if (!lower) { i++; continue; }
 
-    if (COPULA_WORDS.indexOf(rest[0]) !== -1) {
-      var beEntry = findWord("Verbs", "be");
-      var beForm = tense === "past" ? beEntry.past : beEntry.pres;
-      outTokens.push(beForm);
-      breakdown[beForm] = "Verb (\"be\"), " + (tense === "past" ? "past" : "present") + " tense, same form no matter the subject.";
+      if (lower === "the") { pendingDefinite = true; i++; continue; }
+      if (lower === "a" || lower === "an") { pendingDefinite = false; i++; continue; }
 
-      var predicateTokens = rest.slice(1);
-      if (!predicateTokens.length) return buildError('Add what follows "' + rest[0] + '", e.g. "he is good".');
-      var artInfo = stripArticle(predicateTokens);
-      var predicateWord = artInfo.rest.join(" ");
+      // Try the longest phrase first (catches multi-word entries like "thank you"
+      // or "dobri deň" before their individual words get parsed separately).
+      var matched = null, matchedLen = 0;
+      for (var len = Math.min(MAX_PHRASE_WORDS, rawTokens.length - i); len >= 1; len--) {
+        var phrase = rawTokens.slice(i, i + len).map(cleanToken).join(" ");
+        if (!phrase) continue;
+        var entry = findByEnglish(phrase) || findByNovaslavWord(phrase);
+        if (entry) { matched = entry; matchedLen = len; break; }
+      }
 
-      var adj = findAdjectiveByEnglish(predicateWord);
-      if (adj) {
-        outTokens.push(adj.word);
-        breakdown[adj.word] = "Adjective (\"" + adj.en + "\"). Adjectives don’t inflect.";
-      } else {
-        var noun = findNounByEnglish(predicateWord);
-        if (!noun) return buildError('Unknown word "' + predicateWord + '". Check the Dictionary for supported vocabulary.');
-        if (artInfo.definite) {
-          outTokens.push(noun.def);
-          breakdown[noun.def] = "Noun (\"the " + noun.en + "\"), " + (noun.gender || "common") + " definite suffix.";
+      if (matched) {
+        var outForm;
+        if (matched.cat === "Verbs") {
+          outForm = tense === "past" ? matched.past : matched.pres;
+        } else if (matched.cat === "Nouns" && pendingDefinite && matched.def) {
+          outForm = matched.def;
         } else {
-          outTokens.push(noun.word);
-          breakdown[noun.word] = "Noun (\"" + noun.en + "\"), indefinite base form.";
+          outForm = matched.word;
         }
-      }
-    } else {
-      var verbBase = VERB_ALIASES[rest[0]];
-      if (!verbBase) {
-        return buildError('Unknown verb "' + rest[0] + '". Try: love, be, have, see, go, want, eat, drink, do, know, say.');
-      }
-      var verbEntry = findWord("Verbs", VERB_BASE_TO_EN[verbBase]);
-      var verbForm = tense === "past" ? verbEntry.past : verbEntry.pres;
-      outTokens.push(verbForm);
-      breakdown[verbForm] = "Verb (\"" + verbEntry.en + "\"), " + (tense === "past" ? "past" : "present") + " tense, same form no matter the subject.";
+        outWords.push(outForm);
+        breakdown[outForm] = describeMatch(matched, tense, matched.cat === "Nouns" && pendingDefinite);
 
-      var objTokens = rest.slice(1);
-      if (objTokens.length) {
-        var oArt = stripArticle(objTokens);
-        var objWord = oArt.rest.join(" ");
-        var objNoun = findNounByEnglish(objWord);
-        if (!objNoun) return buildError('Unknown noun "' + objWord + '". Check the Dictionary for supported vocabulary.');
-        if (oArt.definite) {
-          outTokens.push(objNoun.def);
-          breakdown[objNoun.def] = "Noun (\"the " + objNoun.en + "\"), " + (objNoun.gender || "common") + " definite suffix.";
-        } else {
-          outTokens.push(objNoun.word);
-          breakdown[objNoun.word] = "Noun (\"" + objNoun.en + "\"), indefinite base form.";
+        // Pure single-word lookups get a bonus: show the other form too
+        // (the definite noun form, or the other verb tense) since there's
+        // no sentence context to pick just one.
+        if (isSingleWordInput) {
+          if (matched.cat === "Nouns" && matched.def && outForm !== matched.def) {
+            breakdown[matched.def] = 'Definite form ("the ' + matched.en + '"), ' + (matched.gender || "common") + " gender suffix.";
+          } else if (matched.cat === "Verbs") {
+            var otherForm = tense === "past" ? matched.pres : matched.past;
+            var otherTense = tense === "past" ? "present" : "past";
+            breakdown[otherForm] = capitalize(otherTense) + " tense.";
+          }
         }
+
+        pendingDefinite = false;
+        i += matchedLen;
+        continue;
       }
+
+      // Grammar-only single-token fallbacks (pronouns/copula/verb inflections
+      // aren't stored as literal dictionary alternates, so they need their own check).
+      var pronounEn = PRONOUN_MAP[lower];
+      if (pronounEn) {
+        var pEntry = findWord("Pronouns", pronounEn);
+        outWords.push(pEntry.word);
+        breakdown[pEntry.word] = describeMatch(pEntry, tense, false);
+        pendingDefinite = false;
+        i++; continue;
+      }
+
+      if (COPULA_WORDS.indexOf(lower) !== -1) {
+        var beEntry = findWord("Verbs", "be");
+        var beForm = tense === "past" ? beEntry.past : beEntry.pres;
+        outWords.push(beForm);
+        breakdown[beForm] = describeMatch(beEntry, tense, false);
+        pendingDefinite = false;
+        i++; continue;
+      }
+
+      var verbBase = VERB_ALIASES[lower];
+      if (verbBase) {
+        var vEntry = findWord("Verbs", VERB_BASE_TO_EN[verbBase]);
+        var vForm = tense === "past" ? vEntry.past : vEntry.pres;
+        outWords.push(vForm);
+        breakdown[vForm] = describeMatch(vEntry, tense, false);
+        pendingDefinite = false;
+        i++; continue;
+      }
+
+      // Not found anywhere, in Novaslav or in English. Keep it visible, don't stop.
+      outWords.push("[" + raw + "]");
+      missing.push(raw);
+      pendingDefinite = false;
+      i++;
     }
 
-    var novWord = capitalize(outTokens.join(" ")) + ".";
+    var novWord = capitalize(outWords.join(" ")) + ".";
 
     return {
       mode: "sentence",
       novaslav: novWord,
       english_translation: capitalize(clean) + ".",
-      grammar_breakdown: breakdown
+      grammar_breakdown: breakdown,
+      missing: missing
     };
   }
 
   function render(result) {
     var outputWrap = document.getElementById("outputWrap");
     var errorWrap = document.getElementById("errorWrap");
+    var missingWrap = document.getElementById("missingWrap");
 
     if (result.error) {
       outputWrap.style.display = "none";
+      missingWrap.style.display = "none";
       errorWrap.style.display = "block";
       document.getElementById("errorText").innerHTML = "<b>Couldn’t build that:</b> " + result.error;
       return;
@@ -190,7 +218,7 @@
     errorWrap.style.display = "none";
     outputWrap.style.display = "block";
 
-    var speakBtn = window.NovaslavTTS ? window.NovaslavTTS.button(result.novaslav.replace(/\.$/, "")) : "";
+    var speakBtn = window.NovaslavTTS ? window.NovaslavTTS.button(result.novaslav.replace(/\.$/, "").replace(/[\[\]]/g, "")) : "";
     document.getElementById("outNovaslav").innerHTML = result.novaslav + speakBtn;
     document.getElementById("outEnglish").textContent = '"' + result.english_translation + '"';
 
@@ -199,10 +227,21 @@
       return '<div class="breakdown-row"><b>' + k + "</b><span>" + result.grammar_breakdown[k] + "</span></div>";
     }).join("");
 
+    if (result.missing && result.missing.length) {
+      missingWrap.style.display = "block";
+      missingWrap.innerHTML = "<b>Not in the dictionary yet:</b> " +
+        result.missing.map(function (w) { return '"' + w + '"'; }).join(", ") +
+        ". Left as-is in brackets above.";
+    } else {
+      missingWrap.style.display = "none";
+      missingWrap.innerHTML = "";
+    }
+
     var jsonObj = {
       novaslav: result.novaslav,
       english_translation: result.english_translation,
-      grammar_breakdown: result.grammar_breakdown
+      grammar_breakdown: result.grammar_breakdown,
+      missing: result.missing || []
     };
     document.getElementById("jsonView").textContent = JSON.stringify(jsonObj, null, 2);
     document.getElementById("jsonView").classList.remove("show");
@@ -243,4 +282,8 @@
       this.textContent = view.classList.contains("show") ? "Hide JSON" : "Show JSON";
     });
   });
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { translate: translate };
+  }
 })();

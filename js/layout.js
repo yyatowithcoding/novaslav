@@ -38,7 +38,7 @@
       '<footer class="site-footer">' +
       '<div class="footer-wrap">' +
       "<div>&copy; " + year + " Novôslav, a made-up language built for fun." + "</div>" +
-      '<div><a href="/learn/">Learn</a><a href="/dictionary/">Dictionary</a><a href="/translator/">Word Builder</a><a href="/practice/">Practice</a><a href="/import/">Import</a></div>' +
+      '<div><a href="/learn/">Learn</a><a href="/dictionary/">Dictionary</a><a href="/translator/">Word Builder</a><a href="/practice/">Practice</a></div>' +
       "</div>" +
       "</footer>"
     );
