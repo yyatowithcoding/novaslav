@@ -1,0 +1,47 @@
+# Numbers 11-100 + ordinals 1st-10th, rebuilt from scratch to match the
+# existing 1-10 roots (yeden, dva, tri, štiri, pyať, šesť, sedem, osem,
+# devyať, desyať). The messy source file used completely different roots
+# (jedan, pet, devet...) that wouldn't have matched at all, plus grammatical
+# case/gender forms Novaslav doesn't support (no case system), plus two
+# competing number styles mixed together. This is a clean rebuild instead,
+# verified against the live 574-word dictionary: zero spelling clashes,
+# zero meaning overlaps.
+#
+# Paste this whole file into the import box as-is (comments and blank
+# lines are ignored by the parser).
+
+# Teens 11-19, root + najst
+yedenajst, eleven, Numbers
+dvanajst, twelve, Numbers
+trinajst, thirteen, Numbers
+štirinajst, fourteen, Numbers
+pyatnajst, fifteen, Numbers
+šestnajst, sixteen, Numbers
+sedemnajst, seventeen, Numbers
+osemnajst, eighteen, Numbers
+devyatnajst, nineteen, Numbers
+
+# Tens 20-90, root + deset
+dvadeset, twenty, Numbers
+trideset, thirty, Numbers
+štirideset, forty, Numbers
+pyatdeset, fifty, Numbers
+šestdeset, sixty, Numbers
+sedemdeset, seventy, Numbers
+osemdeset, eighty, Numbers
+devyatdeset, ninety, Numbers
+
+sto, one hundred, Numbers
+
+# Ordinals 1st-10th ("second" uses vtori, not drugi, since drugi already
+# means "other / another")
+prvi, first, Numbers
+vtori, second, Numbers
+tretji, third, Numbers
+štvrti, fourth, Numbers
+peti, fifth, Numbers
+šesti, sixth, Numbers
+sedmi, seventh, Numbers
+osmi, eighth, Numbers
+deveti, ninth, Numbers
+deseti, tenth, Numbers

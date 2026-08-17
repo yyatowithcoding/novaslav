@@ -32,6 +32,10 @@
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   function cleanToken(t) {
     return t.toLowerCase().replace(/[.,!?;:"'()]/g, "").trim();
   }
@@ -49,8 +53,53 @@
     return NOVASLAV_DATA.find(function (w) { return w.cat === cat && w.en === en; });
   }
 
-  // English "en" fields can hold alternates ("go / walk") and parenthetical
-  // qualifiers ("love (noun)", "you (singular)"). Match against any of them.
+  var GENDER_TAGS = ["masculine", "feminine", "neuter"];
+  var NUMBER_TAGS = ["singular", "plural"];
+  var FORMALITY_TAGS = ["formal", "informal"];
+
+  // A qualifier at the end of an "en" field, like "my / mine (feminine)" or
+  // "your / yours (plural, formal)", describes the *whole* entry, every "/"
+  // alternate before it, not just whichever word happens to sit next to the
+  // parentheses. Pulls that trailing qualifier off once (splitting on "," or
+  // "/" inside the parens, either separator shows up in the wild), then
+  // splits the remaining alternates.
+  function parseEntryEn(enField) {
+    var gender = null, number = null, formality = null;
+    var withoutTrailingQualifier = enField.replace(/\(([^)]*)\)\s*$/, function (m, inner) {
+      inner.split(/[,/]/).forEach(function (p) {
+        p = p.trim().toLowerCase();
+        if (GENDER_TAGS.indexOf(p) !== -1) gender = p;
+        if (NUMBER_TAGS.indexOf(p) !== -1) number = p;
+        if (FORMALITY_TAGS.indexOf(p) !== -1) formality = p;
+      });
+      return "";
+    }).trim();
+    var alts = withoutTrailingQualifier.split("/").map(function (s) {
+      return s.trim().toLowerCase().replace(/\s*\([^)]*\)\s*/g, "").trim();
+    });
+    return { alts: alts, gender: gender, number: number, formality: formality };
+  }
+
+  // Finds every dictionary entry whose English meaning (any "/" alternate)
+  // matches phrase, tagged with whatever gender/number/formality qualifier
+  // that entry carried. Multiple hits means a real ambiguity (e.g. "you"
+  // existing as separate singular/plural entries, or "my" as separate
+  // masculine/feminine/neuter ones).
+  function findVariants(phrase) {
+    var results = [];
+    NOVASLAV_DATA.forEach(function (w) {
+      var parsed = parseEntryEn(w.en);
+      if (parsed.alts.indexOf(phrase) !== -1) {
+        results.push({ entry: w, gender: parsed.gender, number: parsed.number, formality: parsed.formality });
+      }
+    });
+    return results;
+  }
+
+  // Also matches by literal Novaslav spelling (case-insensitive is fine here,
+  // this only ever runs inside the phrase loop after the English check already
+  // failed, and altMatches below still guards English-collision-prone lookups
+  // separately). Used to detect a following noun's gender for agreement.
   function altMatches(enField, target) {
     if (!enField) return false;
     var alts = enField.split("/").map(function (s) { return s.trim().toLowerCase(); });
@@ -60,44 +109,6 @@
       if (alt === target || bare === target) return true;
     }
     return false;
-  }
-
-  var GENDER_TAGS = ["masculine", "feminine", "neuter"];
-  var NUMBER_TAGS = ["singular", "plural"];
-
-  // A gender/number qualifier at the end of an "en" field, like "my / mine
-  // (feminine)" or "friend (plural)", describes the *whole* entry, every "/"
-  // alternate before it, not just whichever word happens to sit next to the
-  // parentheses. Pulls that trailing qualifier off once, then splits the rest.
-  function parseEntryEn(enField) {
-    var gender = null, number = null;
-    var withoutTrailingQualifier = enField.replace(/\(([^)]*)\)\s*$/, function (m, inner) {
-      inner.split(",").forEach(function (p) {
-        p = p.trim().toLowerCase();
-        if (GENDER_TAGS.indexOf(p) !== -1) gender = p;
-        if (NUMBER_TAGS.indexOf(p) !== -1) number = p;
-      });
-      return "";
-    }).trim();
-    var alts = withoutTrailingQualifier.split("/").map(function (s) {
-      return s.trim().toLowerCase().replace(/\s*\([^)]*\)\s*/g, "").trim();
-    });
-    return { alts: alts, gender: gender, number: number };
-  }
-
-  // Finds every dictionary entry whose English meaning (any "/" alternate)
-  // matches phrase, tagged with whatever gender/number qualifier that entry
-  // carried. Multiple hits means a real ambiguity (e.g. "my" existing as
-  // separate masculine/feminine/neuter entries).
-  function findVariants(phrase) {
-    var results = [];
-    NOVASLAV_DATA.forEach(function (w) {
-      var parsed = parseEntryEn(w.en);
-      if (parsed.alts.indexOf(phrase) !== -1) {
-        results.push({ entry: w, gender: parsed.gender, number: parsed.number });
-      }
-    });
-    return results;
   }
 
   // Looks past the current position for the next noun this engine can resolve,
@@ -118,21 +129,24 @@
     return null;
   }
 
-  // Merges a variant's entry fields with its gender/number/assumed metadata into
-  // one flat object, so callers can use it exactly like a plain dictionary entry
-  // (matched.cat, matched.word, matched.past, ...) while still knowing how it was picked.
+  // Merges a variant's entry fields with its gender/number/formality/assumed
+  // metadata into one flat object, so callers can use it exactly like a plain
+  // dictionary entry (matched.cat, matched.word, matched.past, ...) while
+  // still knowing how it was picked.
   function flattenVariant(v, assumed) {
     var out = {};
     for (var k in v.entry) out[k] = v.entry[k];
     out._gender = v.gender;
     out._number = v.number;
+    out._formality = v.formality;
     out._assumed = !!assumed;
     return out;
   }
 
-  // Resolves which variant to use when a word has more than one gender/number
-  // form. Priority: an explicit manual selector, then auto-detected agreement
-  // from context, then just the first variant (flagged as an assumption).
+  // Resolves which variant to use when a word has more than one gender/number/
+  // formality form. Priority: an explicit manual selector, then auto-detected
+  // gender agreement from context, then just the first variant (flagged as
+  // an assumption so the UI can say so).
   function pickVariant(variants, prefs, rawTokens, fromIndex) {
     if (variants.length === 1) return flattenVariant(variants[0], false);
 
@@ -144,6 +158,10 @@
       var byPrefNumber = variants.find(function (v) { return v.number === prefs.number; });
       if (byPrefNumber) return flattenVariant(byPrefNumber, false);
     }
+    if (prefs.formality !== "auto") {
+      var byPrefFormality = variants.find(function (v) { return v.formality === prefs.formality; });
+      if (byPrefFormality) return flattenVariant(byPrefFormality, false);
+    }
 
     var hasGenderVariants = variants.some(function (v) { return v.gender; });
     if (hasGenderVariants) {
@@ -154,12 +172,14 @@
       }
     }
 
-    // Couldn't resolve it. If the variants actually differ by gender/number,
-    // flag the guess so the UI can tell the user to check the selectors. If
-    // they're unrelated homonyms (e.g. "love" the verb vs. "love" the noun),
-    // there's nothing to "assume", just pick the first one quietly as before.
+    // Couldn't resolve it. If the variants actually differ by gender/number/
+    // formality, flag the guess so the UI can tell the user to check the
+    // selectors. If they're unrelated homonyms (e.g. "love" the verb vs.
+    // "love" the noun), there's nothing to "assume", just pick the first one
+    // quietly as before.
     var hasNumberVariants = variants.some(function (v) { return v.number; });
-    return flattenVariant(variants[0], hasGenderVariants || hasNumberVariants);
+    var hasFormalityVariants = variants.some(function (v) { return v.formality; });
+    return flattenVariant(variants[0], hasGenderVariants || hasNumberVariants || hasFormalityVariants);
   }
 
   // Checks the *whole* dictionary by the Novaslav side too (base word, definite
@@ -211,15 +231,16 @@
 
   // Best-effort, word-by-word (and phrase-by-phrase) translation from English
   // into Novaslav. Anything it can't find anywhere in the dictionary, in English
-  // *or* in Novaslav, gets left as-is in brackets and reported in `missing`
-  // instead of failing the whole sentence outright.
+  // *or* in Novaslav, is left exactly as typed (no brackets) and reported in
+  // `missing` so the UI can explain why, instead of failing the whole sentence.
   function translateEnToNov(inputText, tense, prefs) {
-    prefs = prefs || { gender: "auto", number: "auto" };
+    prefs = prefs || { gender: "auto", number: "auto", formality: "auto" };
     var clean = inputText.trim().replace(/[.!?]+$/, "");
     if (!clean) return buildError("Type something to translate.");
 
     var rawTokens = clean.split(/\s+/);
     var outWords = [];
+    var missingFlags = [];
     var breakdown = {};
     var missing = [];
     var pendingDefinite = false;
@@ -261,11 +282,13 @@
           outForm = matched.word;
         }
         outWords.push(outForm);
+        missingFlags.push(false);
+        var tags = [matched._gender, matched._number, matched._formality].filter(Boolean);
         var desc = describeMatch(matched, tense, matched.cat === "Nouns" && pendingDefinite);
-        if (matched._gender || matched._number) {
+        if (tags.length) {
           desc += matched._assumed
-            ? " Assumed " + (matched._gender || matched._number) + " (use the Gender/Number selector below to change)."
-            : " (" + (matched._gender || matched._number) + ")";
+            ? " Assumed " + tags.join(", ") + " (use the selectors below to change)."
+            : " (" + tags.join(", ") + ")";
         }
         breakdown[outForm] = desc;
         pendingDefinite = false;
@@ -279,6 +302,7 @@
       if (pronounEn) {
         var pEntry = findWord("Pronouns", pronounEn);
         outWords.push(pEntry.word);
+        missingFlags.push(false);
         breakdown[pEntry.word] = describeMatch(pEntry, tense, false);
         pendingDefinite = false;
         i++; continue;
@@ -288,6 +312,7 @@
         var beEntry = findWord("Verbs", "be");
         var beForm = tense === "past" ? beEntry.past : beEntry.pres;
         outWords.push(beForm);
+        missingFlags.push(false);
         breakdown[beForm] = describeMatch(beEntry, tense, false);
         pendingDefinite = false;
         i++; continue;
@@ -298,13 +323,16 @@
         var vEntry = findWord("Verbs", VERB_BASE_TO_EN[verbBase]);
         var vForm = tense === "past" ? vEntry.past : vEntry.pres;
         outWords.push(vForm);
+        missingFlags.push(false);
         breakdown[vForm] = describeMatch(vEntry, tense, false);
         pendingDefinite = false;
         i++; continue;
       }
 
-      // Not found anywhere, in Novaslav or in English. Keep it visible, don't stop.
-      outWords.push("[" + raw + "]");
+      // Not found anywhere, in Novaslav or in English. Left exactly as typed,
+      // no brackets, just flagged for the missing-words banner.
+      outWords.push(raw);
+      missingFlags.push(true);
       missing.push(raw);
       pendingDefinite = false;
       i++;
@@ -312,6 +340,8 @@
 
     return {
       target: capitalize(outWords.join(" ")) + ".",
+      targetWords: outWords,
+      targetMissingFlags: missingFlags,
       grammar_breakdown: breakdown,
       missing: missing
     };
@@ -325,6 +355,7 @@
 
     var rawTokens = clean.split(/\s+/);
     var outWords = [];
+    var missingFlags = [];
     var breakdown = {};
     var missing = [];
 
@@ -355,20 +386,34 @@
           breakdown[label] = describeMatch(matched, "pres", false);
         }
         outWords.push(enOut);
+        missingFlags.push(false);
         i += matchedLen;
         continue;
       }
 
-      outWords.push("[" + raw + "]");
+      outWords.push(raw);
+      missingFlags.push(true);
       missing.push(raw);
       i++;
     }
 
     return {
       target: capitalize(outWords.join(" ")) + ".",
+      targetWords: outWords,
+      targetMissingFlags: missingFlags,
       grammar_breakdown: breakdown,
       missing: missing
     };
+  }
+
+  function buildTargetHtml(result) {
+    var words = result.targetWords || [];
+    var flags = result.targetMissingFlags || [];
+    var html = words.map(function (w, idx) {
+      var safe = escapeHtml(w);
+      return flags[idx] ? '<span class="missing-word" title="Not in the dictionary yet">' + safe + "</span>" : safe;
+    }).join(" ");
+    return capitalize(html) + ".";
   }
 
   function render(result, direction) {
@@ -389,9 +434,9 @@
     state.lastTarget = result.target;
 
     var isNovTarget = direction === "en-nov";
-    var speakText = result.target.replace(/\.$/, "").replace(/[\[\]]/g, "");
+    var speakText = result.target.replace(/\.$/, "");
     var speakBtn = isNovTarget && window.NovaslavTTS ? window.NovaslavTTS.button(speakText) : "";
-    targetOutput.innerHTML = result.target + speakBtn;
+    targetOutput.innerHTML = buildTargetHtml(result) + speakBtn;
 
     var bd = document.getElementById("outBreakdown");
     var keys = Object.keys(result.grammar_breakdown);
@@ -405,7 +450,8 @@
       missingWrap.style.display = "block";
       missingWrap.innerHTML = "<b>Not in the dictionary yet:</b> " +
         result.missing.map(function (w) { return '"' + w + '"'; }).join(", ") +
-        ". Left as-is in brackets above.";
+        " (highlighted above), so " + (result.missing.length === 1 ? "it was" : "they were") +
+        " left exactly as typed instead of being translated.";
     } else {
       missingWrap.style.display = "none";
       missingWrap.innerHTML = "";
@@ -425,9 +471,11 @@
     var tense = document.querySelector('input[name="tense"]:checked').value;
     var genderSel = document.getElementById("genderPref");
     var numberSel = document.getElementById("numberPref");
+    var formalitySel = document.getElementById("formalityPref");
     var prefs = {
       gender: genderSel ? genderSel.value : "auto",
-      number: numberSel ? numberSel.value : "auto"
+      number: numberSel ? numberSel.value : "auto",
+      formality: formalitySel ? formalitySel.value : "auto"
     };
     var result = state.direction === "en-nov" ? translateEnToNov(text, tense, prefs) : translateNovToEn(text);
     render(result, state.direction);
@@ -453,7 +501,7 @@
 
   function swap() {
     var sourceInput = document.getElementById("sourceInput");
-    var targetText = (state.lastTarget || "").replace(/\.$/, "").replace(/[\[\]]/g, "").trim();
+    var targetText = (state.lastTarget || "").replace(/\.$/, "").trim();
 
     state.direction = state.direction === "en-nov" ? "nov-en" : "en-nov";
     updateLabels();
@@ -471,8 +519,10 @@
 
     var genderSel = document.getElementById("genderPref");
     var numberSel = document.getElementById("numberPref");
+    var formalitySel = document.getElementById("formalityPref");
     if (genderSel) genderSel.addEventListener("change", run);
     if (numberSel) numberSel.addEventListener("change", run);
+    if (formalitySel) formalitySel.addEventListener("change", run);
 
     document.getElementById("swapBtn").addEventListener("click", swap);
 
