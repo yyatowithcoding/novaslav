@@ -74,13 +74,40 @@ def build_prompt(topic, count, existing_words):
     meanings = ", ".join(sorted(set(w["en"] for w in existing_words)))
     categories = ", ".join(NOVASLAV_CATEGORIES)
     return f"""Generate a vocabulary list for a constructed language called Novaslav.
-Output plain text only: no explanations, no markdown, no code fences.
+Output plain text only: no explanations, no markdown, no code fences, no header line, no
+summary line, no preamble of any kind. The very first line of your output must already be
+a complete, fully formatted word entry. Nothing before it.
 
-Line format, one word per line:
-    word, english, category[, gender]
+Line format, one word per line, always exactly this many comma-separated fields, IN THIS EXACT
+ORDER, field 1 is always the invented Novaslav word, never the English meaning:
+    <novaslav_word>, <english_meaning>, <category>[, <gender>]
+
+Example of exactly what your output should look like for 3 words (do not reuse these exact
+words or meanings, this is only to show the shape):
+    lubar, to enjoy, Verbs
+    ponedelnik, Monday, Nouns
+    tri, three, Numbers
+
+Every line is fully self-contained and independent. Never factor the English words out into
+a separate list or header, each line repeats its own english meaning inline even if it was
+already mentioned elsewhere in your output.
+
+Here "lubar" is the invented Novaslav word (field 1) and "to enjoy" is the English meaning
+(field 2). Do NOT reverse this order. Do NOT put the English word first.
+
+WRONG (English meaning first, this order is never allowed):
+    to enjoy, lubar, Verbs
+
+WRONG (english field missing entirely, category shifted into its place):
+    ponedelnik, Nouns, masculine
+
+Every single line MUST have the english meaning as its own field between the word and the
+category. A line with only word and category (2 fields) is invalid and will be rejected.
+A line where field 1 is a real English word and field 2 looks like the invented word is
+also invalid, the order is backwards and will be rejected.
 
 Rules:
-- word: Latin letters only, plus these accented ones where the sound needs it: {ALLOWED_ACCENTS}. Nothing else, no other alphabet.
+- word (field 1): Latin letters only, plus these accented ones where the sound needs it: {ALLOWED_ACCENTS}. Nothing else, no other alphabet.
 - english: the meaning. Use "/" for close alternates, not a comma.
 - category: exactly one of: {categories}
 - gender: Nouns only, optional. "masculine", "feminine", or "neuter".
@@ -123,6 +150,23 @@ def meaning_parts(en):
     """Splits an "en" field like "watch strap" or "cheap / inexpensive" into its
     lowercased alternates, for exact (not fuzzy) meaning-collision checks."""
     return {p.strip().lower() for p in en.split("/") if p.strip()}
+
+
+MAX_FIELDS_PER_LINE = 4  # word, english, category, gender
+
+
+def strip_header_lines(raw_text):
+    """Models occasionally prepend a summary/header line dumping every English
+    word into one comma list before the real per-word lines. A real entry never
+    has more than 4 comma-separated fields, so anything wider gets dropped
+    before it ever reaches the real parser."""
+    kept, dropped = [], []
+    for line in (raw_text or "").splitlines():
+        if line.strip() and not line.strip().startswith("#") and line.count(",") + 1 > MAX_FIELDS_PER_LINE:
+            dropped.append(line.strip())
+            continue
+        kept.append(line)
+    return "\n".join(kept), dropped
 
 
 def validate(raw_text, existing_words):
@@ -203,10 +247,19 @@ def main():
     print(f"Asking {args.model} for {args.count} words about '{args.topic}' ...")
     raw = call_groq(prompt, api_key, args.model)
 
+    raw, dropped_headers = strip_header_lines(raw)
+    for line in dropped_headers:
+        print(f"  Dropped a stray header/summary line (too many fields): {line[:80]}...")
+
     entries, errors = validate(raw, existing)
     print(f"\n{len(entries)} clean, {len(errors)} rejected.")
     for err in errors:
         print("  -", err)
+
+    if not entries:
+        print("\nRaw model output (first 20 lines), for debugging:")
+        for line in raw.splitlines()[:20]:
+            print("  |", line)
 
     lines = entries_to_lines(entries)
     Path(args.out).write_text("\n".join(lines), encoding="utf-8")
