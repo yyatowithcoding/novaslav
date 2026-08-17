@@ -96,6 +96,23 @@
     return results;
   }
 
+  // Closed-compound fallback: a dictionary meaning like "good night" is stored
+  // with a space, but people often type it as one word ("goodnight"). Only
+  // used for single-token lookups, and only once the spaced phrase match has
+  // already failed, so this can't shadow any real space-separated entry.
+  function findVariantsClosed(token) {
+    var results = [];
+    NOVASLAV_DATA.forEach(function (w) {
+      var parsed = parseEntryEn(w.en);
+      parsed.alts.forEach(function (alt) {
+        if (alt.indexOf(" ") !== -1 && alt.replace(/\s+/g, "") === token) {
+          results.push({ entry: w, gender: parsed.gender, number: parsed.number, formality: parsed.formality });
+        }
+      });
+    });
+    return results;
+  }
+
   // Also matches by literal Novaslav spelling (case-insensitive is fine here,
   // this only ever runs inside the phrase loop after the English check already
   // failed, and altMatches below still guards English-collision-prone lookups
@@ -263,6 +280,7 @@
         var phraseCased = slice.map(cleanTokenCased).join(" ");
         if (!phrase) continue;
         var variants = findVariants(phrase);
+        if (!variants.length && len === 1) variants = findVariantsClosed(phrase);
         if (variants.length) {
           matched = pickVariant(variants, prefs, rawTokens, i);
           matchedLen = len;
